@@ -68,6 +68,11 @@ public class Roomba_Player : MonoBehaviour
 
     private Rigidbody rb; // Reference to the Rigidbody component
 
+    [Header("Cinemachine Shake")]
+    [SerializeField] private Cinemachine_Shake Cinemachine_Shake; // Reference to the Cinemachine shake script
+    [SerializeField] private float shakeIntensity = 10f; // Intensity of the shake
+    [SerializeField] private float shakeTime = 5f;    // Duration of the shake
+
     private void Awake()
     {
         rb = GetComponent<Rigidbody>(); // Get the Rigidbody component
@@ -110,8 +115,8 @@ public class Roomba_Player : MonoBehaviour
         MoveRoomba(); // Roomba movement method
 
         // Check for win condition \\
-        // Win condition: Collect 30 dust and have an empty bag
-        if (dustCollected == 30 && currentCapacity == 0)
+        // Win condition: Collect 20 dust and have an empty bag
+        if (dustCollected == 20 && currentCapacity == 0)
         {
             WinGame(); // Call the win game method
         }
@@ -284,6 +289,8 @@ public class Roomba_Player : MonoBehaviour
 
             Instantiate(suctionVFXPrefab, other.transform.position, Quaternion.identity);
 
+            StartCoroutine(DestroyDustParticle(suctionVFXPrefab, 1f)); // Destroy the suction VFX after 1 second
+
             StartCoroutine(SlowDown()); // Slow down the player temporarily
             PlaySound(pickupSound);
         }
@@ -433,7 +440,9 @@ public class Roomba_Player : MonoBehaviour
 
         GetComponentInChildren<MeshRenderer>().material.color = Color.yellow; // Change roomba to yellow to indicate emptying
 
-        StartCoroutine(ShakeRoomba()); // Start shaking effect
+        //StartCoroutine(ShakeRoomba()); // Start shaking effect
+
+        Cinemachine_Shake.ShakeCamera(shakeIntensity, shakeTime); // Start camera shake effect
 
         yield return new WaitForSeconds(5); // Simulate time taken to empty bag and audio to end
 
@@ -468,6 +477,7 @@ public class Roomba_Player : MonoBehaviour
     }
 
     // --- Shake Effect Coroutine --- \\
+    // Deprecated in favor of Cinemachine shake
     IEnumerator ShakeRoomba()
     {
         Vector3 originalPosition = transform.position; // Store the original position
@@ -481,6 +491,14 @@ public class Roomba_Player : MonoBehaviour
             yield return null; // Wait for the next frame
         }
         transform.position = originalPosition; // Reset to original position
+    }
+
+    // --- Destroy Dust Particle After Some Time --- \\
+    // FIX THIS : Currently destroys the prefab reference, not the instantiated object \\
+    IEnumerator DestroyDustParticle(GameObject suctionVFXPrefab, float delay)
+    {
+        yield return new WaitForSeconds(delay); // Wait for the specified delay
+        Destroy(suctionVFXPrefab); // Destroy the dust particle
     }
 
     // === END OF COROUTINES === \\

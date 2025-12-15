@@ -20,6 +20,11 @@ public class Roomba_CameraSwitch : MonoBehaviour
         activeCam.Priority = 0;
     }
 
+    private void Update()
+    {
+        Debug.Log(activeCam);
+    }
+
     private void OnTriggerEnter(Collider other)
     {
         if (other.CompareTag("Player"))

@@ -82,4 +82,11 @@ public class DustSpawner : MonoBehaviour
 
         return randomPosition;
     }
+
+    private void OnDrawGizmosSelected()
+    {
+        Gizmos.color = Color.yellow;
+        Gizmos.DrawWireSphere(transform.position, spawnRadius);
+        Gizmos.DrawCube(transform.position, spawnHeight * Vector3.up);
+    }
 }
