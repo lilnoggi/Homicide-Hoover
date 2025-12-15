@@ -1,15 +1,15 @@
 using System.Collections;
 using UnityEngine;
 
-//_______________________\\_____________________\\
-// CAMERA MOVEMENT SCRIPT \\_____________________\\
-// This script handles the camera movement logic. \\
-// Pressing "Q" will rotate the camera 90 degrees to the right. \\
-// Pressing "E" will rotate the camera 90 degrees to the left. \\
-//__________________________________________________\\
-
 public class CameraMovement : MonoBehaviour
 {
+    //_______________________\\_____________________\\
+    // CAMERA MOVEMENT SCRIPT \\_____________________\\
+    // This script handles the camera movement logic. \\
+    // Pressing "Q" will rotate the camera 90 degrees to the right. \\
+    // Pressing "E" will rotate the camera 90 degrees to the left. \\
+    //__________________________________________________\\
+
     // VARIABLES \\
     public float rotationDuration = 0.3f; // Speed of camera rotation
     public GameObject player; // Reference to the player object
