@@ -1,27 +1,33 @@
 using System.Collections;
-using System.Collections.Generic;
-using UnityEngine;
 using TMPro;
+using UnityEngine;
+
+public class Roomba_Player : MonoBehaviour
 
 //_____________________________________\\
-// PLAYER SCRIPT                        \\_______\\
+// ROOMBA_PLAYER SCRIPT                        \\_______\\
 // This script handles the Roomba movement logic. \\
 // It also manages dust collection, furniture      \\
 // collisions, and disposal mechanics.              \\
 //___________________________________________________\\
-
-public class Mover : MonoBehaviour
 {
     // === VARIABLES === \\
     [Header("Settings")]
     private const float baseMoveSpeed = 10f; // Base movement speed
 
     [SerializeField] private float moveSpeed = baseMoveSpeed; // How fast the Roomba can move
+
     [SerializeField] int hits = 0;                 // Amount of times the player has hit furniture
     [SerializeField] int hitLimit = 0;            // Limit before the Roomba breaks down
+
     public int dustCollected;                    // Amount of dust player collected
     public int score;                           // Player's score
+
     public GameObject suctionVFXPrefab;        // VFX prefab for dust suction effect
+
+    [Header("Camera Shake Variables")]
+    [SerializeField] private float shakeMagnitude = 0.05f; // Magnitude of the shake effect
+    [SerializeField] private float shakeDuration = 4.5f;  // Duration of the shake effect
 
     [Header("Capacity Variables")]
     public int maxCapacity = 10;            // Maximum dust capacity before Roomba needs to empty
@@ -29,12 +35,8 @@ public class Mover : MonoBehaviour
 
     [Header("Disposal Variables")]
     public bool playerDetection = false; // Whether the player is in the disposal area
-    public GameObject disposalArea;  // Reference to the disposal area object
-    public GameObject binBagPrefab; // Prefab for the bin bag to instantiate
-
-    [Header("Shake Variables")]
-    [SerializeField] private float shakeMagnitude = 0.05f; // Magnitude of the shake effect
-    [SerializeField] private float shakeDuration = 4.5f; // Duration of the shake effect
+    public GameObject disposalArea;     // Reference to the disposal area object
+    public GameObject binBagPrefab;    // Prefab for the bin bag to instantiate
 
     [Header("UI Components")]
     public TextMeshProUGUI dustCounter;          // UI text fore score goes here!
@@ -56,7 +58,7 @@ public class Mover : MonoBehaviour
     private AudioSource audioSource;
 
     [Header("State Flags")]
-    private bool isBroken =  false; // Prevents speed from being reset while broken
+    private bool isBroken = false; // Prevents speed from being reset while broken
     private bool isSlowed = false; // Prevents the next fix from being overridden
     public bool isFull = false;  // New flag for bag status
     private bool isEmptying = false; // Prevents multiple emptying actions
@@ -154,14 +156,6 @@ public class Mover : MonoBehaviour
         // --- Final speed is the calculated target speed --- \\
         moveSpeed = targetSpeed;
 
-        //float xValue = Input.GetAxis("Horizontal") * Time.deltaTime; // Get the horizontal keys (A, D, Left, Right) // Commented out for new HandleRotaiton()
-        //float zValue = Input.GetAxis("Vertical") * Time.deltaTime;  // Get vertical movement keys (W, S, Up, Down)
-
-        // =-= FIX: APPLY MOVEMENT VECTOR DIRECTLY =-= \\
-        // Apply the camera-relative movement vector 'movement' to the position \\
-        // The movement vector is already calculated in Update() based on input \\
-        //transform.Translate(movement * moveSpeed * Time.deltaTime, Space.World); // Movement speed calculation // Commented out for Rigidbody movement
-
         // --- RIGIDBODY MOVEMENT --- \\
         // Set the velocity directly (less "drifty" than Translate)
         if (movement.magnitude > 0.1f)
@@ -217,9 +211,9 @@ public class Mover : MonoBehaviour
     void EmptyBag()
     {
         Debug.Log("Emptying dust bag...");
-        
+
         UpdateUI();         // Update UI immediately
-        
+
         SpawnBinBag(); // Spawn the bin bag
     }
 
@@ -238,13 +232,13 @@ public class Mover : MonoBehaviour
     {
         if (other.gameObject.tag == "Furniture")
         {
-            if (isBroken) return;
+            if (isBroken) return; // If already broken, ignore further hits
 
-            PlayRandomSound();
+            PlayRandomSound(); // Play a random furniture hit sound
 
             hits++; // If the player collides with an object, the hit counter increases by 1.
-            score -= 50;
-            hitLimit++;
+            score -= 50; // Decrease score by 50 for hitting furniture
+            hitLimit++; // Increase hit limit
 
             Debug.Log($"Bad Roomba! You hit: {hits} pieces of furniture!"); // Console output.
 
@@ -298,7 +292,7 @@ public class Mover : MonoBehaviour
         if (other.gameObject == disposalArea)
         {
             promptCanvas.SetActive(true); // Show prompt UI
-            playerDetection = true;
+            playerDetection = true; // Player is in disposal area
             Debug.Log("In disposal area. Press 'E' to empty dust bag.");
         }
 
@@ -311,7 +305,7 @@ public class Mover : MonoBehaviour
         if (other.gameObject == disposalArea)
         {
             promptCanvas.SetActive(false); // Hide prompt UI
-            playerDetection = false;
+            playerDetection = false; // Player has left disposal area
             Debug.Log("Left disposal area.");
         }
     }
@@ -426,7 +420,7 @@ public class Mover : MonoBehaviour
     // --- Bin Bag Disposal --- \\
     IEnumerator BagEmptying()
     {
-        audioSource.Stop();
+        audioSource.Stop(); // Stop the current vacuum sound instantly
 
         isEmptying = true; // Set emptying flag to prevent multiple triggers
 
