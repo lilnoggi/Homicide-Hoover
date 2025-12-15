@@ -9,6 +9,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 1448739838905725894}
+  - component: {fileID: 4109959592523349254}
   m_Layer: 0
   m_Name: HomicideHoover
   m_TagString: Untagged
@@ -34,6 +35,45 @@ Transform:
   - {fileID: 7244222242903156993}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &4109959592523349254
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 229550197710788812}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c4758a803c1fa9e4b8a48c23c2055063, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::Roomba_Player
+  moveSpeed: 10
+  hits: 0
+  hitLimit: 0
+  dustCollected: 0
+  score: 0
+  suctionVFXPrefab: {fileID: 0}
+  shakeMagnitude: 0.05
+  shakeDuration: 4.5
+  maxCapacity: 10
+  currentCapacity: 0
+  playerDetection: 0
+  disposalArea: {fileID: 0}
+  binBagPrefab: {fileID: 0}
+  dustCounter: {fileID: 0}
+  furnitureHitCounter: {fileID: 0}
+  scoreCounter: {fileID: 0}
+  capacityCounter: {fileID: 0}
+  promptCanvas: {fileID: 0}
+  gameWonCanvas: {fileID: 0}
+  pickupSound: {fileID: 0}
+  furnitureHitSounds: []
+  vacuumLoop: {fileID: 0}
+  vacuumOff: {fileID: 0}
+  vacuumOn: {fileID: 0}
+  brokeDown: {fileID: 0}
+  disposal: {fileID: 0}
+  isFull: 0
 --- !u!1 &4126278931801178987
 GameObject:
   m_ObjectHideFlags: 0
@@ -123,6 +163,7 @@ MeshRenderer:
   m_SortingLayerID: 0
   m_SortingLayer: 0
   m_SortingOrder: 0
+  m_MaskInteraction: 0
   m_AdditionalVertexStreams: {fileID: 0}
 --- !u!136 &1947649480486219320
 CapsuleCollider:
@@ -236,6 +277,7 @@ MeshRenderer:
   m_SortingLayerID: 0
   m_SortingLayer: 0
   m_SortingOrder: 0
+  m_MaskInteraction: 0
   m_AdditionalVertexStreams: {fileID: 0}
 --- !u!136 &3831032477303282815
 CapsuleCollider:
@@ -349,6 +391,7 @@ MeshRenderer:
   m_SortingLayerID: 0
   m_SortingLayer: 0
   m_SortingOrder: 0
+  m_MaskInteraction: 0
   m_AdditionalVertexStreams: {fileID: 0}
 --- !u!136 &4195417979248079804
 CapsuleCollider:

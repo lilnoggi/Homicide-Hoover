@@ -12,11 +12,11 @@ public class DirectionIndicator : MonoBehaviour
 
     [SerializeField] private Transform disposalZone; // Reference to the disposal zone transform
 
-    private Mover moverScript; // Reference to the Mover script
+    private Roomba_Player roombaScript; // Reference to the Mover script
 
     private void Start()
     {
-        moverScript = GameObject.FindWithTag("Player").GetComponent<Mover>(); // Get the Mover script from the player
+        roombaScript = GameObject.FindWithTag("Player").GetComponent<Roomba_Player>(); // Get the Mover script from the player
     }
 
     private void Update()
@@ -29,7 +29,7 @@ public class DirectionIndicator : MonoBehaviour
     // === INDICATOR VISIBILITY LOGIC === \\
     void Indicate()
     {
-        if (moverScript.currentCapacity >= 5)
+        if (roombaScript.currentCapacity >= 5)
                     {
             indicator.SetActive(true); // Show the direction indicator
         }
