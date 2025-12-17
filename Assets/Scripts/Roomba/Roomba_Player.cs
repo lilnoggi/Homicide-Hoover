@@ -278,14 +278,31 @@ public class Roomba_Player : MonoBehaviour
     }
 
     // === COLLECT EVIDENCE METHOD === \\
-    public void CollectEvidence(Evidence_Collectable evidence)
+    public bool CollectEvidence(Evidence_Collectable evidence)
     {
-        GameManager.Instance.AddScore(evidence.scoreValue); // Add score from evidence
+        if (currentCapacity + evidence.capacityValue > maxCapacity)
+        {
+            return false; // Not enough capacity to collect evidence
+        }
+
+        currentCapacity += evidence.capacityValue; // Increase current capacity
+
+        GameManager.Instance.AddScore(evidence.scoreValue); // Add score for collecting evidence
+        GameManager.Instance.UpdateUI(currentCapacity, maxCapacity); // Update UI with new capacity
 
         if (evidence.isKnife)
         {
             GameManager.Instance.FoundKnife(); // Notify GameManager of knife collection
+            Debug.Log("CRITICAL EVIDENCE FOUND: " + evidence.evidenceName);
         }
+
+        GameObject vfx = Instantiate(suctionVFXPrefab, transform.position, Quaternion.identity);
+        Destroy(vfx, 2f); // Destroy the VFX after 2 seconds
+
+        StartCoroutine(SlowDown()); // Start slowdown coroutine
+        PlaySound(pickupSound); // Play pickup sound
+
+        return true; // Evidence collected successfully
     }
     // === COLLECT EVIDENCE END === \\
 
@@ -457,14 +474,6 @@ public class Roomba_Player : MonoBehaviour
             yield return null; // Wait for the next frame
         }
         transform.position = originalPosition; // Reset to original position
-    }
-
-    // --- Destroy Dust Particle After Some Time --- \\
-    // FIX THIS : Currently destroys the prefab reference, not the instantiated object \\
-    IEnumerator DestroyDustParticle(GameObject suctionVFXPrefab, float delay)
-    {
-        yield return new WaitForSeconds(delay); // Wait for the specified delay
-        Destroy(suctionVFXPrefab); // Destroy the dust particle
     }
 
     // === END OF COROUTINES === \\

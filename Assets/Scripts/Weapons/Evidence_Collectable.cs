@@ -23,11 +23,17 @@ public class Evidence_Collectable : MonoBehaviour
 
             if (roomba_Player != null)
             {
-                // Send this specific evidence's data to the Roomba_Player script
-                roomba_Player.CollectEvidence(this);
-
-                // Destroy the object after collection
-                Destroy(gameObject);
+                bool collected = roomba_Player.CollectEvidence(this);
+                
+                if (collected)
+                {
+                    Debug.Log("Evidence Collected: " + evidenceName);
+                    Destroy(gameObject);
+                }
+                else
+                {
+                    Debug.Log("Roomba is full! Cannot pick up evidence.");
+                }
             }
         }
     }
