@@ -10,6 +10,7 @@ using UnityEngine.SceneManagement;
 public class ButtonManager : MonoBehaviour
 {
     public GameObject tutorialPanel; // Reference to the tutorial panel UI
+    public GameObject knifeCollectedPanel; 
 
     public void Update()
     {
@@ -33,6 +34,16 @@ public class ButtonManager : MonoBehaviour
     public void TutorialButton()
     {
         tutorialPanel.SetActive(false); // Hide the tutorial panel
+        Time.timeScale = 1f; // Resume the game
+
+        Cursor.lockState = CursorLockMode.Locked; // Lock the cursor
+        Cursor.visible = false; // Hide the cursor
+    }
+
+    // === Evidence Panel Button Handler === \\
+    public void EvidenceButton()
+    {
+        knifeCollectedPanel.SetActive(false);
         Time.timeScale = 1f; // Resume the game
 
         Cursor.lockState = CursorLockMode.Locked; // Lock the cursor

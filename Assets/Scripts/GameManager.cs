@@ -18,13 +18,17 @@ public class GameManager : MonoBehaviour
     public TextMeshProUGUI capacityCounter;
     public TextMeshProUGUI hitsCounter;
     public GameObject gameWonCanvas;
-    // Move other UI references here !!!
+
+    [Header("Script References")]
+    private ButtonManager buttonManager;
 
     private void Awake()
     {
         // Singleton pattern: ensures only one GameManager exists
         if (Instance == null) { Instance = this; }
         else { Destroy(gameObject); }
+
+        buttonManager = FindAnyObjectByType<ButtonManager>();
     }
 
     private void Start()
@@ -52,6 +56,11 @@ public class GameManager : MonoBehaviour
     {
         hasMurderWeapon = true;
         UpdateUI();
+
+        buttonManager.knifeCollectedPanel.SetActive(true);
+        Time.timeScale = 0f; // Pause the game
+        Cursor.lockState = CursorLockMode.None;
+        Cursor.visible = true;
     }
 
     // === EVIDENCE END === \\
