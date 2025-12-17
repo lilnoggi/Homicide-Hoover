@@ -1,5 +1,4 @@
 using System.Collections;
-using TMPro;
 using UnityEngine;
 
 public class Roomba_Player : MonoBehaviour
@@ -12,64 +11,44 @@ public class Roomba_Player : MonoBehaviour
 //___________________________________________________\\
 {
     // === VARIABLES === \\
-    [Header("Settings")]
+    [Header("Movement Settings")]
     private const float baseMoveSpeed = 10f; // Base movement speed
-
     [SerializeField] private float moveSpeed = baseMoveSpeed; // How fast the Roomba can move
+    private Rigidbody rb; // Reference to the Rigidbody component
+    private Vector3 movement; // Movement vector
+    private Transform cameraTransform; // Reference to the main camera's transform         // Movement vector
 
-    [SerializeField] int hits = 0;                 // Amount of times the player has hit furniture
-    [SerializeField] int hitLimit = 0;            // Limit before the Roomba breaks down
-
-    public int dustCollected;                    // Amount of dust player collected
-    public int score;                           // Player's score
-
-    public GameObject suctionVFXPrefab;        // VFX prefab for dust suction effect
-
-    [Header("Camera Shake Variables")]
-    [SerializeField] private float shakeMagnitude = 0.05f; // Magnitude of the shake effect
-    [SerializeField] private float shakeDuration = 4.5f;  // Duration of the shake effect
-
-    [Header("Capacity Variables")]
-    public int maxCapacity = 10;            // Maximum dust capacity before Roomba needs to empty
+    [Header("Status Variables")]
     public int currentCapacity;            // Current dust capacity
-
-    [Header("Disposal Variables")]
-    public bool playerDetection = false; // Whether the player is in the disposal area
-    public GameObject disposalArea;     // Reference to the disposal area object
-    public GameObject binBagPrefab;    // Prefab for the bin bag to instantiate
-
-    [Header("UI Components")]
-    public TextMeshProUGUI dustCounter;          // UI text fore score goes here!
-    public TextMeshProUGUI furnitureHitCounter; // UI text for amount of furniture hit
-    public TextMeshProUGUI scoreCounter;       // UI text for score
-    public TextMeshProUGUI capacityCounter;   // UI text for dust capacity
-    public GameObject promptCanvas;          // UI canvas for prompts
-    public GameObject gameWonCanvas;        // UI canvas for game won
-
-    [Header("Audio")]
-    public AudioClip pickupSound;
-    public AudioClip[] furnitureHitSounds;
-    public AudioClip vacuumLoop;
-    public AudioClip vacuumOff;
-    public AudioClip vacuumOn;
-    public AudioClip brokeDown;
-    public AudioClip disposal;
-
-    private AudioSource audioSource;
+    public int maxCapacity = 10;            // Maximum dust capacity before Roomba needs to empty
+    [SerializeField] int hits = 0;                 // Amount of times the player has hit furniture
+    [SerializeField] int hitLimit = 3;            // Limit before the Roomba breaks down                    // Amount of dust player collected                          // Player's score
 
     [Header("State Flags")]
     private bool isBroken = false; // Prevents speed from being reset while broken
     private bool isSlowed = false; // Prevents the next fix from being overridden
     public bool isFull = false;  // New flag for bag status
     private bool isEmptying = false; // Prevents multiple emptying actions
+    public bool playerDetection = false; // Whether the player is in the disposal area
+    
+    [Header("References")]
+    public GameObject disposalArea;     // Reference to the disposal area object
+    public GameObject binBagPrefab;    // Prefab for the bin bag to instantiate
+    public GameObject suctionVFXPrefab;        // VFX prefab for dust suction effect
+    public GameObject promptCanvas;          // UI canvas for prompts 
+    [SerializeField] private Cinemachine_Shake Cinemachine_Shake; // Reference to the Cinemachine shake script
 
-    private Transform cameraTransform; // Reference to the main camera's transform
-    private Vector3 movement;          // Movement vector
+    [Header("Audio")]
+    private AudioSource audioSource;
+    public AudioClip pickupSound;
+    public AudioClip[] furnitureHitSounds;
+    public AudioClip vacuumLoop, vacuumOff, vacuumOn, brokeDown, disposal;
 
-    private Rigidbody rb; // Reference to the Rigidbody component
+    [Header("Camera Shake Variables")]
+    [SerializeField] private float shakeMagnitude = 0.05f; // Magnitude of the shake effect
+    [SerializeField] private float shakeDuration = 4.5f;  // Duration of the shake effect
 
     [Header("Cinemachine Shake")]
-    [SerializeField] private Cinemachine_Shake Cinemachine_Shake; // Reference to the Cinemachine shake script
     [SerializeField] private float shakeIntensity = 10f; // Intensity of the shake
     [SerializeField] private float shakeTime = 5f;    // Duration of the shake
 
@@ -101,8 +80,6 @@ public class Roomba_Player : MonoBehaviour
 
     void Update()
     {
-        UpdateUI();  // Updates the UI output
-
         HandleDisposalInput(); // Check for disposal input
 
         // === CAMERA INFLUENCE ON MOVEMENT === \\
@@ -113,13 +90,6 @@ public class Roomba_Player : MonoBehaviour
         movement = GetCameraRelativeMovement(rawInput);
 
         MoveRoomba(); // Roomba movement method
-
-        // Check for win condition \\
-        // Win condition: Collect 20 dust and have an empty bag
-        if (dustCollected == 20 && currentCapacity == 0)
-        {
-            WinGame(); // Call the win game method
-        }
     }
 
     // === ROOMBA MOVEMENT === \\
@@ -217,8 +187,6 @@ public class Roomba_Player : MonoBehaviour
     {
         Debug.Log("Emptying dust bag...");
 
-        UpdateUI();         // Update UI immediately
-
         SpawnBinBag(); // Spawn the bin bag
     }
 
@@ -235,15 +203,13 @@ public class Roomba_Player : MonoBehaviour
     // === COLLIDE WITH FURNITURE === \\
     private void OnCollisionEnter(Collision other) // CHANGED from private int to private void
     {
-        if (other.gameObject.tag == "Furniture")
+        if (other.gameObject.CompareTag("Furniture") && !isBroken)
         {
-            if (isBroken) return; // If already broken, ignore further hits
-
+            hits++; // If the player collides with an object, the hit counter increases by 1.
+            hitLimit++; // Increase hit limit for breakage check
+            GameManager.Instance.AddScore(-50); // Deduct score for hitting furniture
             PlayRandomSound(); // Play a random furniture hit sound
 
-            hits++; // If the player collides with an object, the hit counter increases by 1.
-            score -= 50; // Decrease score by 50 for hitting furniture
-            hitLimit++; // Increase hit limit
 
             Debug.Log($"Bad Roomba! You hit: {hits} pieces of furniture!"); // Console output.
 
@@ -270,7 +236,7 @@ public class Roomba_Player : MonoBehaviour
     // === TRIGGER ENTRY || Dust & Disposal === \\
     private void OnTriggerEnter(Collider other)
     {
-        if (other.tag == "Dust")
+        if (other.CompareTag("Dust"))
         {
             // --- If Broken or Full, do not collect dust --- \\
             if (isBroken || currentCapacity >= maxCapacity)
@@ -280,19 +246,15 @@ public class Roomba_Player : MonoBehaviour
             }
 
             // --- Capacity Tracking --- \\
-            const int dustCapacityCost = 1; // Each dust collected costs 1 capacity
-            const int dustScore = 20; // How many points each dust is worth
+            currentCapacity++; // Increase current capacity
+            GameManager.Instance.CollectDust(); // Notify GameManager of dust collection
 
-            currentCapacity += dustCapacityCost; // Increase current capacity
-            score += dustScore;                 // Increase score
-            dustCollected++;                   // Increase dust collected
+            // --- VFX LOGIC --- Instantiate and destroy in one flow
+            GameObject vfx = Instantiate(suctionVFXPrefab, other.transform.position, Quaternion.identity);
+            Destroy(vfx, 2f); // Destroy the VFX after 2 seconds
 
-            Instantiate(suctionVFXPrefab, other.transform.position, Quaternion.identity);
-
-            StartCoroutine(DestroyDustParticle(suctionVFXPrefab, 1f)); // Destroy the suction VFX after 1 second
-
-            StartCoroutine(SlowDown()); // Slow down the player temporarily
-            PlaySound(pickupSound);
+            StartCoroutine(SlowDown()); // Start slowdown coroutine
+            PlaySound(pickupSound); // Play pickup sound
         }
 
         // === COLLIDE WITH DISPOSAL AREA === \\
@@ -302,8 +264,6 @@ public class Roomba_Player : MonoBehaviour
             playerDetection = true; // Player is in disposal area
             Debug.Log("In disposal area. Press 'E' to empty dust bag.");
         }
-
-        // EVIDENCE HANDLING GOES HERE \\
     }
 
     // === TRIGGER EXIT || Disposal Area === \\
@@ -317,14 +277,17 @@ public class Roomba_Player : MonoBehaviour
         }
     }
 
-    // === UPDATE UI === \\
-    void UpdateUI()
+    // === COLLECT EVIDENCE METHOD === \\
+    public void CollectEvidence(Evidence_Collectable evidence)
     {
-        dustCounter.text = $"Dust Collected: {dustCollected}/30";                    // Updates dust collected UI
-        furnitureHitCounter.text = $"Furniture Hit: {hits}";                     // Updates furniture hit UI
-        scoreCounter.text = $"Score: {score}";                                  // Updates score UI
-        capacityCounter.text = $"Capacity: {currentCapacity}/{maxCapacity}"; // Updates capacity UI
+        GameManager.Instance.AddScore(evidence.scoreValue); // Add score from evidence
+
+        if (evidence.isKnife)
+        {
+            GameManager.Instance.FoundKnife(); // Notify GameManager of knife collection
+        }
     }
+    // === COLLECT EVIDENCE END === \\
 
     // === AUDIO === \\
     private void PlaySound(AudioClip clip)
@@ -474,6 +437,8 @@ public class Roomba_Player : MonoBehaviour
             audioSource.loop = true;
             audioSource.Play();
         }
+
+        GameManager.Instance.CheckWinCondition(currentCapacity); // Check for win condition after emptying
     }
 
     // --- Shake Effect Coroutine --- \\
@@ -502,16 +467,4 @@ public class Roomba_Player : MonoBehaviour
     }
 
     // === END OF COROUTINES === \\
-
-    // === WIN GAME METHOD === \\
-    public void WinGame()
-    {
-        gameWonCanvas.SetActive(true); // Show game won UI
-        Time.timeScale = 0f; // Pause the game
-
-        Cursor.lockState = CursorLockMode.None; // Unlock the cursor
-        Cursor.visible = true; // Make the cursor visible
-
-        Debug.Log("Congratulations! You've collected all the dust and won the game!");
-    }
 }
