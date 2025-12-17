@@ -8,6 +8,8 @@ public class Evidence_Collectable : MonoBehaviour
     [Header("Evidence Settings")]
     public string evidenceName; // Name of the evidence item
     public int scoreValue; // Score value of the evidence item
+    public int capacityValue; // Capacity value of the evidence item
+    
     [Header("Evidence Type")]
     public bool isKnife; // Flag to indicate if the evidence is a knife
 

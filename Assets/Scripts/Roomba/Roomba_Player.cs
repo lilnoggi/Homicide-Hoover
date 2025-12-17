@@ -21,8 +21,7 @@ public class Roomba_Player : MonoBehaviour
     [Header("Status Variables")]
     public int currentCapacity;            // Current dust capacity
     public int maxCapacity = 10;            // Maximum dust capacity before Roomba needs to empty
-    [SerializeField] int hits = 0;                 // Amount of times the player has hit furniture
-    [SerializeField] int hitLimit = 3;            // Limit before the Roomba breaks down                    // Amount of dust player collected                          // Player's score
+    [SerializeField] int hits;                 // Amount of times the player has hit furniture                // Amount of dust player collected                          // Player's score
 
     [Header("State Flags")]
     private bool isBroken = false; // Prevents speed from being reset while broken
@@ -206,8 +205,8 @@ public class Roomba_Player : MonoBehaviour
         if (other.gameObject.CompareTag("Furniture") && !isBroken)
         {
             hits++; // If the player collides with an object, the hit counter increases by 1.
-            hitLimit++; // Increase hit limit for breakage check
-            GameManager.Instance.AddScore(-50); // Deduct score for hitting furniture
+            GameManager.Instance.RegisterFurnitureHit(currentCapacity, maxCapacity); // Notify GameManager of furniture hit
+
             PlayRandomSound(); // Play a random furniture hit sound
 
 
@@ -218,7 +217,7 @@ public class Roomba_Player : MonoBehaviour
             StartCoroutine(ChangeColour()); // Start the colour change coroutine.
 
             // --- CHECK FOR BREAKAGE --- \\
-            if (hitLimit >= 3)
+            if (hits >= 3)
             {
                 isBroken = true; // Set broken state to true
                 // Stop the current vacuum sound instantly
@@ -228,7 +227,7 @@ public class Roomba_Player : MonoBehaviour
                 StartCoroutine(BreakVacuumSequence(4.5f)); // 5 is the duration of the "break"
 
                 // Reset the hit limit
-                hitLimit = 0;
+                hits = 0;
             }
         }
     }
@@ -248,6 +247,7 @@ public class Roomba_Player : MonoBehaviour
             // --- Capacity Tracking --- \\
             currentCapacity++; // Increase current capacity
             GameManager.Instance.CollectDust(); // Notify GameManager of dust collection
+            GameManager.Instance.UpdateUI(currentCapacity, maxCapacity); // Update UI with new capacity
 
             // --- VFX LOGIC --- Instantiate and destroy in one flow
             GameObject vfx = Instantiate(suctionVFXPrefab, other.transform.position, Quaternion.identity);
@@ -412,6 +412,7 @@ public class Roomba_Player : MonoBehaviour
         // --- Core Logic --- \\
         EmptyBag(); // Call the empty bag method
         currentCapacity = 0; // Reset capacity after emptying
+        GameManager.Instance.UpdateUI(currentCapacity, maxCapacity); // Update UI with new capacity
         // --- End of Core Logic --- \\
 
         // Play the vacuum on sound
