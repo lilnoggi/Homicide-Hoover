@@ -3546,6 +3546,18 @@ AudioSource:
     m_PreInfinity: 2
     m_PostInfinity: 2
     m_RotationOrder: 4
+--- !u!114 &500659563
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 500659552}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4dec5d4708b961346aea07285eae8b6f, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::Roomba_Cleaner
 --- !u!1 &512792563 stripped
 GameObject:
   m_CorrespondingSourceObject: {fileID: 1051730796464811310, guid: c2295b34083ed0c4b95a252933176bfd, type: 3}
@@ -14563,6 +14575,9 @@ PrefabInstance:
     - targetCorrespondingSourceObject: {fileID: 229550197710788812, guid: 0859fb3b788891c4e81e9901db471632, type: 3}
       insertIndex: -1
       addedObject: {fileID: 500659561}
+    - targetCorrespondingSourceObject: {fileID: 229550197710788812, guid: 0859fb3b788891c4e81e9901db471632, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 500659563}
   m_SourcePrefab: {fileID: 100100000, guid: 0859fb3b788891c4e81e9901db471632, type: 3}
 --- !u!1660057539 &9223372036854775807
 SceneRoots:

@@ -2,6 +2,9 @@ using UnityEngine;
 
 public class PaintableFloor : MonoBehaviour
 {
+    // === PAINTABLE FLOOR SCRIPT === \\
+    // This script creates a texture that can be painted on at runtime.
+
     [Header("Settings")]
     public int resolution = 512; // Higher = crisper edges, but slower
     public Color floorBaseState = Color.white; // White = Bloody, Black = Clean
