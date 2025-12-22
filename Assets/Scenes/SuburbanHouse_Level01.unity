@@ -5091,7 +5091,7 @@ GameObject:
   m_Component:
   - component: {fileID: 715113503}
   - component: {fileID: 715113504}
-  m_Layer: 0
+  m_Layer: 8
   m_Name: DirectionIndicatorRoot
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -6361,7 +6361,7 @@ GameObject:
   - component: {fileID: 935803961}
   - component: {fileID: 935803963}
   - component: {fileID: 935803962}
-  m_Layer: 0
+  m_Layer: 8
   m_Name: Image
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -8085,7 +8085,7 @@ GameObject:
   - component: {fileID: 1223027828}
   - component: {fileID: 1223027832}
   m_Layer: 0
-  m_Name: Plane
+  m_Name: Floor
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -8198,7 +8198,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::PaintableFloor
   resolution: 512
-  floorBaseState: {r: 1, g: 1, b: 1, a: 1}
+  initialSplatterMap: {fileID: 2800000, guid: 0bf64df7b2dd51a45928fdf817aaf1ad, type: 3}
 --- !u!1 &1251618585
 GameObject:
   m_ObjectHideFlags: 3
@@ -9294,7 +9294,7 @@ GameObject:
   - component: {fileID: 1340279354}
   - component: {fileID: 1340279353}
   - component: {fileID: 1340279356}
-  m_Layer: 0
+  m_Layer: 8
   m_Name: Canvas
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -9842,7 +9842,7 @@ GameObject:
   - component: {fileID: 1428290071}
   - component: {fileID: 1428290073}
   - component: {fileID: 1428290072}
-  m_Layer: 0
+  m_Layer: 8
   m_Name: Text (TMP)
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -11058,7 +11058,7 @@ GameObject:
   m_Component:
   - component: {fileID: 1680656408}
   - component: {fileID: 1680656409}
-  m_Layer: 0
+  m_Layer: 8
   m_Name: arrow_down
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -14401,6 +14401,10 @@ PrefabInstance:
       value: HomicideHoover
       objectReference: {fileID: 0}
     - target: {fileID: 229550197710788812, guid: 0859fb3b788891c4e81e9901db471632, type: 3}
+      propertyPath: m_Layer
+      value: 8
+      objectReference: {fileID: 0}
+    - target: {fileID: 229550197710788812, guid: 0859fb3b788891c4e81e9901db471632, type: 3}
       propertyPath: m_TagString
       value: Player
       objectReference: {fileID: 0}
@@ -14552,9 +14556,21 @@ PrefabInstance:
       propertyPath: 'furnitureHitSounds.Array.data[2]'
       value: 
       objectReference: {fileID: 8300000, guid: 1e4b233d536052841b492df0fd8beb5f, type: 3}
+    - target: {fileID: 4126278931801178987, guid: 0859fb3b788891c4e81e9901db471632, type: 3}
+      propertyPath: m_Layer
+      value: 8
+      objectReference: {fileID: 0}
     - target: {fileID: 4195417979248079804, guid: 0859fb3b788891c4e81e9901db471632, type: 3}
       propertyPath: m_Enabled
       value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 5948035532377928232, guid: 0859fb3b788891c4e81e9901db471632, type: 3}
+      propertyPath: m_Layer
+      value: 8
+      objectReference: {fileID: 0}
+    - target: {fileID: 6022261248916185050, guid: 0859fb3b788891c4e81e9901db471632, type: 3}
+      propertyPath: m_Layer
+      value: 8
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []

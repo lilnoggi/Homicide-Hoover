@@ -2,61 +2,80 @@ using UnityEngine;
 
 public class PaintableFloor : MonoBehaviour
 {
-    // === PAINTABLE FLOOR SCRIPT === \\
-    // This script creates a texture that can be painted on at runtime.
-
     [Header("Settings")]
-    public int resolution = 512; // Higher = crisper edges, but slower
-    public Color floorBaseState = Color.white; // White = Bloody, Black = Clean
+    public int resolution = 512;
+    public Texture2D initialSplatterMap; // Your Splatter PNG
 
-    private Texture2D maskTexture; // The texture that will hold the paint data
-    private Material floorMaterial; // The material of the floor to apply the texture to
+    private Texture2D maskTexture;
+    private Material floorMaterial;
 
     private void Start()
     {
-        // 1. Get the material from the renderer
         floorMaterial = GetComponent<MeshRenderer>().material;
-
-        // 2. Create a new blank texture in memory
         maskTexture = new Texture2D(resolution, resolution);
 
-        // 3. Fill it with the starting colour (Blood)
-        // Loop through each pixel to set the colour
-        Color[] colors = new Color[resolution * resolution];
-        for (int i = 0; i < colors.Length; i++)
+        if (initialSplatterMap != null)
         {
-            colors[i] = floorBaseState;
-        }
-        maskTexture.SetPixels(colors);
-        maskTexture.Apply();
+            // RESIZE if needed to prevent errors
+            if (initialSplatterMap.width != resolution)
+                maskTexture.Reinitialize(initialSplatterMap.width, initialSplatterMap.height);
 
-        // 4. Send this new texture to the Shader
+            // === THE FIX: SANITIZE THE PIXELS ===
+            // Get original pixels
+            Color[] srcPixels = initialSplatterMap.GetPixels();
+            // Create array for new clean mask
+            Color[] destPixels = new Color[srcPixels.Length];
+
+            for (int i = 0; i < srcPixels.Length; i++)
+            {
+                // Check the Alpha (Transparency) of the splatter image
+                // If it's see-through (Alpha < 0.1), make it BLACK (Wood)
+                // If it's visible, make it WHITE (Blood)
+                if (srcPixels[i].a < 0.1f)
+                {
+                    destPixels[i] = Color.black;
+                }
+                else
+                {
+                    destPixels[i] = Color.white;
+                }
+            }
+
+            // Apply our clean Black/White mask
+            maskTexture.SetPixels(destPixels);
+        }
+        else
+        {
+            // Fallback: Full Blood if no image
+            Color[] colors = new Color[resolution * resolution];
+            for (int i = 0; i < colors.Length; i++) colors[i] = Color.white;
+            maskTexture.SetPixels(colors);
+        }
+
+        maskTexture.Apply();
         floorMaterial.SetTexture("_BloodMask", maskTexture);
     }
 
-    // This function is called by the Roomba
     public void CleanAt(Vector2 uvPosition)
     {
-        // Convert the 0-1 UV coordinates to pixel coordinates
-        int x = (int)(uvPosition.x * resolution);
-        int y = (int)(uvPosition.y * resolution);
+        int x = (int)(uvPosition.x * maskTexture.width);
+        int y = (int)(uvPosition.y * maskTexture.height);
 
-        // Paint a small 3x3 patch of black (clean) pixels
-        for (int i = -3; i <= 3; i++)
+        // Brush Size loop
+        for (int i = -5; i <= 5; i++)
         {
-            for (int j = -3; j <= 3; j++)
+            for (int j = -5; j <= 5; j++)
             {
-                if (x + i >= 0
-                    && x + i < resolution
-                    && y + j >= 0
-                    && y + j < resolution)
+                int pX = x + i;
+                int pY = y + j;
+
+                if (pX >= 0 && pX < maskTexture.width && pY >= 0 && pY < maskTexture.height)
                 {
-                    maskTexture.SetPixel(x + i, y + j, Color.black);
+                    // Paint Black (Clean Wood)
+                    maskTexture.SetPixel(pX, pY, Color.black);
                 }
             }
         }
-
-        // Apply the changes to the texture
         maskTexture.Apply();
     }
 }
