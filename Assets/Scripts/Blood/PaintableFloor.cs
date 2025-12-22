@@ -62,8 +62,10 @@ public class PaintableFloor : MonoBehaviour
         floorMaterial.SetTexture("_BloodMask", maskTexture);
     }
 
-    public void CleanAt(Vector2 uvPosition)
+    public int CleanAt(Vector2 uvPosition)
     {
+        int cleanedCount = 0;
+
         int x = (int)(uvPosition.x * maskTexture.width);
         int y = (int)(uvPosition.y * maskTexture.height);
 
@@ -76,7 +78,7 @@ public class PaintableFloor : MonoBehaviour
             {
                 // --- CIRCULAR BRUSH CHECK --- \\
                 // Only paint if the distance from center is less than radius
-                if (i*i + j*j <= radiusSquared)
+                if (i * i + j * j <= radiusSquared)
                 {
                     int pX = x + i;
                     int pY = y + j;
@@ -87,12 +89,24 @@ public class PaintableFloor : MonoBehaviour
                         && pY >= 0
                         && pY < maskTexture.height)
                     {
-                        // Set pixel to BLACK (clean)
-                        maskTexture.SetPixel(pX, pY, Color.black);
+                        Color currentPixel = maskTexture.GetPixel(pX, pY); // Get current pixel color
+
+                        if (currentPixel.r > 0.1f)
+                        {
+                            // Set pixel to BLACK (clean)
+                            maskTexture.SetPixel(pX, pY, Color.black);
+                            cleanedCount++;
+                        }
                     }
                 }
             }
         }
-        maskTexture.Apply();
+
+        if (cleanedCount > 0)
+        {
+            maskTexture.Apply();
+        }
+
+        return cleanedCount; // Return the score
     }
 }
