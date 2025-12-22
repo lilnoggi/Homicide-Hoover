@@ -2,6 +2,10 @@ using UnityEngine;
 
 public class Roomba_Cleaner : MonoBehaviour
 {
+    // === ROOMBA_CLEANER SCRIPT === \\
+    // This script allows the Roomba to clean paintable floors by shooting
+    // a ray downwards and interacting with the PaintableFloor script. \\
+
     void Update()
     {
         // Create a Mask that includes all layers EXCEPT the Player layer

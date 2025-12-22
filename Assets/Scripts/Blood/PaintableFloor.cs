@@ -2,6 +2,10 @@ using UnityEngine;
 
 public class PaintableFloor : MonoBehaviour
 {
+    // === PAINTABLE FLOOR SCRIPT === \\
+    // This script allows a floor to be painted with
+    // blood and cleaned by the player or Roomba. \\
+
     [Header("Settings")]
     public int resolution = 512;
     public Texture2D initialSplatterMap; // Your Splatter PNG
