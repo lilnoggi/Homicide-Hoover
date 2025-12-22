@@ -6,6 +6,9 @@ public class Roomba_Cleaner : MonoBehaviour
     // This script allows the Roomba to clean paintable floors by shooting
     // a ray downwards and interacting with the PaintableFloor script. \\
 
+    [Header("Effects")]
+    public ParticleSystem cleaningVFX;
+
     void Update()
     {
         // Create a Mask that includes all layers EXCEPT the Player layer
@@ -14,6 +17,8 @@ public class Roomba_Cleaner : MonoBehaviour
 
         // Shoot a ray DOWN from the Roomba
         RaycastHit hit;
+
+        bool isCleaningBlood = false; // Track if cleaning blood this frame
 
         Vector3 startPos = transform.position + Vector3.up;
         Vector3 direction = Vector3.down;
@@ -35,11 +40,38 @@ public class Roomba_Cleaner : MonoBehaviour
                 // 2. Add score based on pixels cleaned
                 if (pixelsCleaned > 0)
                 {
+                    isCleaningBlood = true; // We are cleaning blood this frame
+
                     // Balance: Divide by 10 to reduce score gain
                     int scoreGain = Mathf.Max(1, pixelsCleaned / 10);
 
                     GameManager.Instance.AddScore(scoreGain);
                 }
+            }
+        }
+
+        // === VFX MANAGEMENT === \\
+        HandleVFX(isCleaningBlood);
+    }
+
+    void HandleVFX(bool isActive)
+    {
+        if (cleaningVFX == null) return;
+
+        if (isActive)
+        {
+            // If cleaning but VFX not playing, turn it on
+            if (!cleaningVFX.isPlaying)
+            {
+                cleaningVFX.Play();
+            }
+        }
+        else
+        {
+            // If stopped cleaning but VFX playing, turn it off
+            if (cleaningVFX.isPlaying)
+            {
+                cleaningVFX.Stop();
             }
         }
     }
