@@ -29,8 +29,17 @@ public class Roomba_Cleaner : MonoBehaviour
 
             if (floor != null)
             {
-                // Send the texture coordinate (UV) to the floor to be cleaned
-                floor.CleanAt(hit.textureCoord);
+                // 1. Clean the floor and get the pixel count
+                int pixelsCleaned = floor.CleanAt(hit.textureCoord);
+
+                // 2. Add score based on pixels cleaned
+                if (pixelsCleaned > 0)
+                {
+                    // Balance: Divide by 10 to reduce score gain
+                    int scoreGain = Mathf.Max(1, pixelsCleaned / 10);
+
+                    GameManager.Instance.AddScore(scoreGain);
+                }
             }
         }
     }
