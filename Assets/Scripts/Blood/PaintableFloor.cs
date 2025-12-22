@@ -9,6 +9,8 @@ public class PaintableFloor : MonoBehaviour
     [Header("Settings")]
     public int resolution = 512;
     public Texture2D initialSplatterMap; // Your Splatter PNG
+    [Range(2, 40)]
+    public int brushRadius = 15;
 
     private Texture2D maskTexture;
     private Material floorMaterial;
@@ -65,18 +67,29 @@ public class PaintableFloor : MonoBehaviour
         int x = (int)(uvPosition.x * maskTexture.width);
         int y = (int)(uvPosition.y * maskTexture.height);
 
-        // Brush Size loop
-        for (int i = -5; i <= 5; i++)
-        {
-            for (int j = -5; j <= 5; j++)
-            {
-                int pX = x + i;
-                int pY = y + j;
+        int radiusSquared = brushRadius * brushRadius;
 
-                if (pX >= 0 && pX < maskTexture.width && pY >= 0 && pY < maskTexture.height)
+        // --- Brush Size loop --- \\
+        for (int i = -brushRadius; i <= brushRadius; i++)
+        {
+            for (int j = -brushRadius; j <= brushRadius; j++)
+            {
+                // --- CIRCULAR BRUSH CHECK --- \\
+                // Only paint if the distance from center is less than radius
+                if (i*i + j*j <= radiusSquared)
                 {
-                    // Paint Black (Clean Wood)
-                    maskTexture.SetPixel(pX, pY, Color.black);
+                    int pX = x + i;
+                    int pY = y + j;
+
+                    // --- BOUNDS CHECK --- \\
+                    if (pX >= 0
+                        && pX < maskTexture.width
+                        && pY >= 0
+                        && pY < maskTexture.height)
+                    {
+                        // Set pixel to BLACK (clean)
+                        maskTexture.SetPixel(pX, pY, Color.black);
+                    }
                 }
             }
         }
