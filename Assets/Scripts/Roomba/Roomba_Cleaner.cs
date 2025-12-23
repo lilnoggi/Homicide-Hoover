@@ -9,16 +9,28 @@ public class Roomba_Cleaner : MonoBehaviour
     [Header("Effects")]
     public ParticleSystem cleaningVFX;
 
+    // State tracking for logging
+    private bool wasCleaningBlood = false;
+
     void Update()
+    {
+        // 1. Logic: Check the floor and calculate score
+        bool isCleaningBlood = PerformCleaning();
+
+        // 2. Debug: Log changes to console
+        HandleLogging(isCleaningBlood);
+
+        // 3. Visuals: Toggle the mist effect
+        HandleVFX(isCleaningBlood);
+    }
+
+    // === CORE CLEANING LOGIC === \\
+    bool PerformCleaning()
     {
         // Create a Mask that includes all layers EXCEPT the Player layer
         // [The ~ symbol meant "NOT" or "Inverse"]
         int layerMask = ~LayerMask.GetMask("Player");
-
-        // Shoot a ray DOWN from the Roomba
         RaycastHit hit;
-
-        bool isCleaningBlood = false; // Track if cleaning blood this frame
 
         Vector3 startPos = transform.position + Vector3.up;
         Vector3 direction = Vector3.down;
@@ -27,7 +39,7 @@ public class Roomba_Cleaner : MonoBehaviour
 
         if (Physics.Raycast(startPos, direction, out hit, 2.0f, layerMask))
         {
-            Debug.Log("Laser hit: " + hit.collider.name);
+            //Debug.Log("Laser hit: " + hit.collider.name);
 
             // Did we hit a Paintable Floor?
             PaintableFloor floor = hit.collider.GetComponent<PaintableFloor>();
@@ -40,20 +52,40 @@ public class Roomba_Cleaner : MonoBehaviour
                 // 2. Add score based on pixels cleaned
                 if (pixelsCleaned > 0)
                 {
-                    isCleaningBlood = true; // We are cleaning blood this frame
-
                     // Balance: Divide by 10 to reduce score gain
                     int scoreGain = Mathf.Max(1, pixelsCleaned / 10);
 
                     GameManager.Instance.AddScore(scoreGain);
+
+                    return true; // Returns TRUE: Currently cleaning blood
                 }
             }
         }
 
-        // === VFX MANAGEMENT === \\
-        HandleVFX(isCleaningBlood);
+        return false; // Returns FALSE: Not cleaning blood
     }
 
+    // === LOGGING LOGIC === \\
+    void HandleLogging(bool isCleaning)
+    {
+        // Only log if the state has CHANGED from the last frame
+        if (isCleaning != wasCleaningBlood)
+        {
+            if (isCleaning)
+            {
+                Debug.Log("<color=red>Status: CLEANING BLOOD</color>");
+            }
+            else
+            {
+                Debug.Log("<color=grey>Status: Stopped Cleaning</color>");
+            }
+
+            // Update the history for the next frame
+            wasCleaningBlood = isCleaning;
+        }
+    }
+
+    // === VFX Logic === \\
     void HandleVFX(bool isActive)
     {
         if (cleaningVFX == null) return;
