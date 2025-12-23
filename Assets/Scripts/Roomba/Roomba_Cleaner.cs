@@ -12,6 +12,9 @@ public class Roomba_Cleaner : MonoBehaviour
     // State tracking for logging
     private bool wasCleaningBlood = false;
 
+    // TIMER: Keeps the VFX alive for a momenet after cleaning stops
+    private float vfxCooldownTimer = 0f;
+
     void Update()
     {
         // 1. Logic: Check the floor and calculate score
@@ -86,13 +89,22 @@ public class Roomba_Cleaner : MonoBehaviour
     }
 
     // === VFX Logic === \\
-    void HandleVFX(bool isActive)
+    void HandleVFX(bool isCleaningNow)
     {
         if (cleaningVFX == null) return;
 
-        if (isActive)
+        // 1. If cleaning, Reset the timer to keep VFX on
+        if (isCleaningNow)
         {
-            // If cleaning but VFX not playing, turn it on
+            vfxCooldownTimer = 0.2f; // Keep VFX alive for 0.2 seconds after cleaning stops
+        }
+
+        // 2. Count down the timer
+        vfxCooldownTimer -= Time.deltaTime;
+
+        // 3. Decide to Play or Stop based on the TIMER
+        if (vfxCooldownTimer > 0)
+        {
             if (!cleaningVFX.isPlaying)
             {
                 cleaningVFX.Play();
@@ -100,7 +112,6 @@ public class Roomba_Cleaner : MonoBehaviour
         }
         else
         {
-            // If stopped cleaning but VFX playing, turn it off
             if (cleaningVFX.isPlaying)
             {
                 cleaningVFX.Stop();
