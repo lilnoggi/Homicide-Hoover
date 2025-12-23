@@ -14,9 +14,12 @@ public class Roomba_Player : MonoBehaviour
     [Header("Movement Settings")]
     private const float baseMoveSpeed = 10f; // Base movement speed
     [SerializeField] private float moveSpeed = baseMoveSpeed; // How fast the Roomba can move
+    [SerializeField] private float rotationSpeed = 150f; // How fast the Roomba can rotate (for tank controls)
     private Rigidbody rb; // Reference to the Rigidbody component
-    private Vector3 movement; // Movement vector
-    private Transform cameraTransform; // Reference to the main camera's transform         // Movement vector
+    //private Vector3 movement; // Movement vector
+    //private Transform cameraTransform; // Reference to the main camera's transform         // Movement vector
+    private float moveInput; // Forward/backward input
+    private float rotateInput; // Left/right rotation input
 
     [Header("Status Variables")]
     public int currentCapacity;            // Current dust capacity
@@ -65,47 +68,37 @@ public class Roomba_Player : MonoBehaviour
             audioSource.Play();          // Start the loop
         }
 
-        // === MAIN CAMERA REFERENCE === \\
-        // Find & store the main camera's transform \\
-        if (Camera.main != null)
-        {
-            cameraTransform = Camera.main.transform; // gets camera transform
-        }
-        else
-        {
-            Debug.LogError("CAMERA NOT FOUND!!!!"); // camera is not placed in the inspector
-        }
+        // REMOVED: Camera.main reference is no longer needed for tank controls
     }
 
     void Update()
     {
         HandleDisposalInput(); // Check for disposal input
 
-        // === CAMERA INFLUENCE ON MOVEMENT === \\
-        // Get the RAW input values
-        Vector3 rawInput = new Vector3(Input.GetAxisRaw("Horizontal"), 0f, Input.GetAxisRaw("Vertical")).normalized;
+        // === TANK CONTROLS INPUT === \\
+        // W/S moves Forward/Backward
+        moveInput = Input.GetAxis("Vertical"); // Get forward/backward input
+        // A/D rotates Left/Right
+        rotateInput = Input.GetAxis("Horizontal"); // Get left/right rotation input
 
-        // Convert the raw input to be relative to the camera's orientation
-        movement = GetCameraRelativeMovement(rawInput);
+        // Rotate the Roomba immeditaely based on input
+        if (!isBroken && !isEmptying)
+        {
+            float turnAmount = rotateInput * rotationSpeed * Time.deltaTime;
+            transform.Rotate(0f, turnAmount, 0f);
+        }
 
-        MoveRoomba(); // Roomba movement method
+        MoveRoomba(); // Handle Roomba movement
     }
 
     // === ROOMBA MOVEMENT === \\
     void MoveRoomba()
     {
-        // --- Only allow movement if not broken --- \\
-        if (isBroken)
+        // --- Only allow movement if not broken or emptying --- \\
+        if (isBroken || isEmptying)
         {
             rb.linearVelocity = Vector3.zero; // Stop movement
             return; // Exit the method early if broken
-        }
-
-        // --- Only allow movement if not emptying --- \\
-        if (isEmptying)
-        {
-            rb.linearVelocity = Vector3.zero; // Stop movement
-            return; // Exit the method early if emptying
         }
 
         float targetSpeed = baseMoveSpeed;
@@ -127,43 +120,26 @@ public class Roomba_Player : MonoBehaviour
             targetSpeed = 2f;
         }
 
-        // --- Final speed is the calculated target speed --- \\
         moveSpeed = targetSpeed;
 
-        // --- RIGIDBODY MOVEMENT --- \\
-        // Set the velocity directly (less "drifty" than Translate)
-        if (movement.magnitude > 0.1f)
+        // --- PHYSICS MOVEMENT --- \\
+        // Move in the direction the Roomba is currently FACING
+        if (Mathf.Abs(moveInput) > 0.1f)
         {
-            // Apply new calculated velocity in the direction of camera-relative input
-            Vector3 desiredVelocity = movement * moveSpeed;
+            // Calculate velocity based on forward vector
+            Vector3 desiredVelocity = transform.forward * moveInput * moveSpeed;
 
-            // Apply the velocity while preserving existing Y velocity (gravity)
-            rb.linearVelocity = new Vector3(desiredVelocity.x, rb.linearVelocity.y, desiredVelocity.z); // Preserve existing Y velocity (gravity)
+            // Apply velocity
+            rb.linearVelocity = new Vector3(desiredVelocity.x, rb.linearVelocity.y, desiredVelocity.z);
         }
         else
         {
-            // No input, stop horizontal movement
-            rb.linearVelocity = Vector3.zero; // Stop horizontal movement
+            // Stop ONLY horizontal movement, gravity acts
+            rb.linearVelocity = new Vector3(0, rb.linearVelocity.y, 0);
         }
     }
-
-    // Camera rotation influences player movement direction \\
-    Vector3 GetCameraRelativeMovement(Vector3 rawInput)
-    {
-        if (cameraTransform == null || rawInput.magnitude < 0.1f)
-        {
-            return Vector3.zero; // no camera or no input, return no movement
-        }
-
-        // Get the camera's Y rotation 
-        Quaternion cameraRotation = Quaternion.Euler(0, cameraTransform.eulerAngles.y, 0);
-
-        // Rotate the input vector (forward/backward/strafe) by the camera's rotation
-        Vector3 newMovement = cameraRotation * new Vector3(rawInput.x, 0f, rawInput.z);
-
-        // Keep movement vector normalised
-        return newMovement.normalized;
-    }
+    
+    // REMOVED: GetCameraRelativeMovement method
 
     // === HANDLE DISPOSAL INPUT === \\
     void HandleDisposalInput()
