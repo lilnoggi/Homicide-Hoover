@@ -46,10 +46,6 @@ public class Roomba_Player : MonoBehaviour
     public AudioClip[] furnitureHitSounds;
     public AudioClip vacuumLoop, vacuumOff, vacuumOn, brokeDown, disposal;
 
-    [Header("Camera Shake Variables")]
-    [SerializeField] private float shakeMagnitude = 0.05f; // Magnitude of the shake effect
-    [SerializeField] private float shakeDuration = 4.5f;  // Duration of the shake effect
-
     [Header("Cinemachine Shake")]
     [SerializeField] private float shakeIntensity = 10f; // Intensity of the shake
     [SerializeField] private float shakeTime = 5f;    // Duration of the shake
@@ -396,8 +392,6 @@ public class Roomba_Player : MonoBehaviour
 
         GetComponentInChildren<MeshRenderer>().material.color = Color.yellow; // Change roomba to yellow to indicate emptying
 
-        //StartCoroutine(ShakeRoomba()); // Start shaking effect
-
         Cinemachine_Shake.ShakeCamera(shakeIntensity, shakeTime); // Start camera shake effect
 
         yield return new WaitForSeconds(5); // Simulate time taken to empty bag and audio to end
@@ -433,23 +427,6 @@ public class Roomba_Player : MonoBehaviour
         }
 
         GameManager.Instance.CheckWinCondition(currentCapacity); // Check for win condition after emptying
-    }
-
-    // --- Shake Effect Coroutine --- \\
-    // Deprecated in favor of Cinemachine shake
-    IEnumerator ShakeRoomba()
-    {
-        Vector3 originalPosition = transform.position; // Store the original position
-        float elapsed = 0f; // Time elapsed
-        while (elapsed < shakeDuration)
-        {
-            float xOffset = Random.Range(-shakeMagnitude, shakeMagnitude);
-            float zOffset = Random.Range(-shakeMagnitude, shakeMagnitude);
-            transform.position = originalPosition + new Vector3(xOffset, 0f, zOffset); // Apply shake offset
-            elapsed += Time.deltaTime; // Increment elapsed time
-            yield return null; // Wait for the next frame
-        }
-        transform.position = originalPosition; // Reset to original position
     }
 
     // === END OF COROUTINES === \\
