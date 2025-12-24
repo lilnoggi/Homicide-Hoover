@@ -49,7 +49,7 @@ public class Roomba_Player : MonoBehaviour
     private AudioSource audioSource;
     public AudioClip pickupSound;
     public AudioClip[] furnitureHitSounds;
-    public AudioClip vacuumLoop, vacuumOff, vacuumOn, brokeDown, disposal;
+    public AudioClip vacuumLoop, vacuumOff, vacuumOn, brokeDown, disposal, dash;
 
     [Header("Cinemachine Shake")]
     [SerializeField] private float shakeIntensity = 10f; // Intensity of the shake
@@ -452,7 +452,8 @@ public class Roomba_Player : MonoBehaviour
         isDashing = true; // Set dashing flag
         canDash = false; // Disable further dashes
 
-        // Add sound & VFX here
+        PlaySound(dash); // Play dash sound
+        // Add VFX here
 
 
         yield return new WaitForSeconds(dashDuration); // Wait for dash duration
