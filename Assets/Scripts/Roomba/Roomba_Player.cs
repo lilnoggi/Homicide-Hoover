@@ -15,6 +15,9 @@ public class Roomba_Player : MonoBehaviour
     private const float baseMoveSpeed = 10f; // Base movement speed
     [SerializeField] private float moveSpeed = baseMoveSpeed; // How fast the Roomba can move
     [SerializeField] private float rotationSpeed = 150f; // How fast the Roomba can rotate (for tank controls)
+    [SerializeField] private float dashSpeed = 15;
+    [SerializeField] private float dashDuration = 0.5f;
+    [SerializeField] private float dashCooldown = 1f;
     private Rigidbody rb; // Reference to the Rigidbody component
     //private Vector3 movement; // Movement vector
     //private Transform cameraTransform; // Reference to the main camera's transform         // Movement vector
@@ -32,7 +35,9 @@ public class Roomba_Player : MonoBehaviour
     public bool isFull = false;  // New flag for bag status
     private bool isEmptying = false; // Prevents multiple emptying actions
     public bool playerDetection = false; // Whether the player is in the disposal area
-    
+    private bool isDashing = false;
+    private bool canDash = true;
+
     [Header("References")]
     public GameObject disposalArea;     // Reference to the disposal area object
     public GameObject binBagPrefab;    // Prefab for the bin bag to instantiate
@@ -97,6 +102,7 @@ public class Roomba_Player : MonoBehaviour
             return; // Exit the method early if broken
         }
 
+        // 1. Calculate the "Normal" intended speed
         float targetSpeed = baseMoveSpeed;
 
         // --- Apply slowdown capacity penalty --- \\
@@ -116,6 +122,13 @@ public class Roomba_Player : MonoBehaviour
             targetSpeed = 2f;
         }
 
+        // 2. Dash Override
+        // If dashing, set speed to dash speed
+        if (isDashing)
+        {
+            targetSpeed = dashSpeed;
+        }
+
         moveSpeed = targetSpeed;
 
         // --- PHYSICS MOVEMENT --- \\
@@ -133,9 +146,13 @@ public class Roomba_Player : MonoBehaviour
             // Stop ONLY horizontal movement, gravity acts
             rb.linearVelocity = new Vector3(0, rb.linearVelocity.y, 0);
         }
+
+        // --- Dash Input --- \\
+        if (Input.GetKeyDown(KeyCode.LeftShift) && !isBroken && !isEmptying && canDash)
+        {
+            StartCoroutine(DashCoroutine());
+        }
     }
-    
-    // REMOVED: GetCameraRelativeMovement method
 
     // === HANDLE DISPOSAL INPUT === \\
     void HandleDisposalInput()
@@ -427,6 +444,21 @@ public class Roomba_Player : MonoBehaviour
         }
 
         GameManager.Instance.CheckWinCondition(currentCapacity); // Check for win condition after emptying
+    }
+
+    // --- Dash Coroutine --- \\
+    IEnumerator DashCoroutine()
+    {
+        isDashing = true; // Set dashing flag
+        canDash = false; // Disable further dashes
+
+        // Add sound & VFX here
+
+
+        yield return new WaitForSeconds(dashDuration); // Wait for dash duration
+        isDashing = false; // Reset dashing flag
+        yield return new WaitForSeconds(dashCooldown); // Wait for cooldown
+        canDash = true; // Re-enable dashing
     }
 
     // === END OF COROUTINES === \\
