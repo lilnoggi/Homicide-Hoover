@@ -22,6 +22,7 @@ public class GameManager : MonoBehaviour
     public GameObject gameWonCanvas;
     [Header("Hotbar UI References")]
     public Image dashUI;
+    public Image senseUI;
 
     [Header("Script References")]
     private ButtonManager buttonManager;
@@ -40,6 +41,19 @@ public class GameManager : MonoBehaviour
     private void Start()
     {
         UpdateUI(0, 10);
+
+        // --- INITIALISE ICONS --- \\
+        if (dashUI != null)
+        {
+            dashUI.fillAmount = 1;
+            dashUI.color = Color.white;
+        }
+
+        if (senseUI != null)
+        {
+            senseUI.fillAmount = 1;
+            senseUI.color = Color.white;
+        }
     }
 
     // === SCORE METHODS === \\
@@ -120,6 +134,41 @@ public class GameManager : MonoBehaviour
         // READY TO DASH
         dashUI.fillAmount = 1;
         dashUI.color = Color.white; // Back to normal color
+    }
+
+    // --- Sense UI --- \\
+    public void TriggerSenseCooldownUI(float senseDuration, float cooldownTime)
+    {
+        if (senseUI != null)
+        {
+            StartCoroutine(AnimateSenseUI(senseDuration, cooldownTime));
+        }
+    }
+
+    private IEnumerator AnimateSenseUI(float senseDuration, float cooldownTime)
+    {
+        // ACTIVE SENSING
+        // Make icon dark
+        senseUI.color = Color.gray;
+        senseUI.fillAmount = 1;
+        // Wait for sense to finish
+        yield return new WaitForSeconds(senseDuration);
+        // COOLDOWN
+        senseUI.color = new Color(0.5f, 0.5f, 0.5f, 0.5f); // Semi-transparent gray
+        senseUI.fillAmount = 0;
+        float timer = 0f;
+        while (timer < cooldownTime)
+        {
+            timer += Time.deltaTime;
+            // Calulcate percentage
+            float progress = timer / cooldownTime;
+            // Update the UI fill
+            senseUI.fillAmount = progress;
+            yield return null;
+        }
+        // READY TO SENSE
+        senseUI.fillAmount = 1;
+        senseUI.color = Color.white; // Back to normal color
     }
     // === UPDATE UI END === \\
 

@@ -21,7 +21,7 @@ public class Roomba_Cleaner : MonoBehaviour
         bool isCleaningBlood = PerformCleaning();
 
         // 2. Debug: Log changes to console
-        HandleLogging(isCleaningBlood);
+        //HandleLogging(isCleaningBlood);
 
         // 3. Visuals: Toggle the mist effect
         HandleVFX(isCleaningBlood);
@@ -68,6 +68,7 @@ public class Roomba_Cleaner : MonoBehaviour
         return false; // Returns FALSE: Not cleaning blood
     }
 
+    /*
     // === LOGGING LOGIC === \\
     void HandleLogging(bool isCleaning)
     {
@@ -87,6 +88,7 @@ public class Roomba_Cleaner : MonoBehaviour
             wasCleaningBlood = isCleaning;
         }
     }
+    */
 
     // === VFX Logic === \\
     void HandleVFX(bool isCleaningNow)
