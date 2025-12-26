@@ -35,8 +35,8 @@ public class Roomba_Player : MonoBehaviour
     public bool isFull = false;  // New flag for bag status
     private bool isEmptying = false; // Prevents multiple emptying actions
     public bool playerDetection = false; // Whether the player is in the disposal area
-    private bool isDashing = false;
-    private bool canDash = true;
+    public bool isDashing = false;
+    public bool canDash = true;
 
     [Header("References")]
     public GameObject disposalArea;     // Reference to the disposal area object
@@ -453,8 +453,14 @@ public class Roomba_Player : MonoBehaviour
         canDash = false; // Disable further dashes
 
         PlaySound(dash); // Play dash sound
-        // Add VFX here
 
+        // Trigger dash UI cooldown in GameManager
+        if (GameManager.Instance != null)
+        {
+            GameManager.Instance.TriggerDashCooldownUI(dashDuration, dashCooldown);
+        }
+
+        // Add VFX here
 
         yield return new WaitForSeconds(dashDuration); // Wait for dash duration
         isDashing = false; // Reset dashing flag

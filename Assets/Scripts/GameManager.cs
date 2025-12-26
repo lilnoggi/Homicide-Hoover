@@ -1,5 +1,7 @@
 using UnityEngine;
 using TMPro;
+using System.Collections;
+using UnityEngine.UI;
 
 public class GameManager : MonoBehaviour
 {
@@ -18,9 +20,12 @@ public class GameManager : MonoBehaviour
     public TextMeshProUGUI capacityCounter;
     public TextMeshProUGUI hitsCounter;
     public GameObject gameWonCanvas;
+    [Header("Hotbar UI References")]
+    public Image dashUI;
 
     [Header("Script References")]
     private ButtonManager buttonManager;
+    private Roomba_Player roombaPlayer;
 
     private void Awake()
     {
@@ -29,6 +34,7 @@ public class GameManager : MonoBehaviour
         else { Destroy(gameObject); }
 
         buttonManager = FindAnyObjectByType<ButtonManager>();
+        roombaPlayer = FindAnyObjectByType<Roomba_Player>();
     }
 
     private void Start()
@@ -72,6 +78,48 @@ public class GameManager : MonoBehaviour
         if (dustCounter) dustCounter.text = $"Dust Collected: {dustCollected}/{totalDustRequired}";
         if (capacityCounter) capacityCounter.text = $"Capacity: {currentCapacity}/{maxCapacity}";
         if (hitsCounter) hitsCounter.text = $"Furniture Hits: {furnitureHits}";
+    }
+
+    // --- Dash UI --- \\
+    // Call this form Roomba_Player when dash starts
+    public void TriggerDashCooldownUI(float dashTime, float cooldownTime)
+    {
+        if (dashUI != null)
+        {
+            StartCoroutine(AnimateDashUI(dashTime, cooldownTime));
+        }
+    }
+
+    private IEnumerator AnimateDashUI(float dashTime, float cooldownTime)
+    {
+        // ACTIVE DASHING
+        // Make icon dark
+        dashUI.color = Color.gray;
+        dashUI.fillAmount = 1;
+
+        // Wait for dash to finish
+        yield return new WaitForSeconds(dashTime);
+
+        // COOLDOWN
+        dashUI.color = new Color(0.5f, 0.5f, 0.5f, 0.5f); // Semi-transparent gray
+        dashUI.fillAmount = 0;
+
+        float timer = 0f;
+        while (timer < cooldownTime)
+        {
+            timer += Time.deltaTime;
+            // Calulcate percentage
+            float progress = timer / cooldownTime;
+
+            // Update the UI fill
+            dashUI.fillAmount = progress;
+
+            yield return null;
+        }
+
+        // READY TO DASH
+        dashUI.fillAmount = 1;
+        dashUI.color = Color.white; // Back to normal color
     }
     // === UPDATE UI END === \\
 
