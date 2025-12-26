@@ -44,6 +44,7 @@ public class Roomba_Player : MonoBehaviour
     public GameObject suctionVFXPrefab;        // VFX prefab for dust suction effect
     public GameObject promptCanvas;          // UI canvas for prompts 
     [SerializeField] private Cinemachine_Shake Cinemachine_Shake; // Reference to the Cinemachine shake script
+    [SerializeField] private TrailRenderer dashTrail; // Reference to the dash trail renderer
 
     [Header("Audio")]
     private AudioSource audioSource;
@@ -460,9 +461,11 @@ public class Roomba_Player : MonoBehaviour
             GameManager.Instance.TriggerDashCooldownUI(dashDuration, dashCooldown);
         }
 
-        // Add VFX here
-
+        // Trail effect \\
+        dashTrail.emitting = true; // Enable trail effect
         yield return new WaitForSeconds(dashDuration); // Wait for dash duration
+        dashTrail.emitting = false; // Disable trail effect
+
         isDashing = false; // Reset dashing flag
         yield return new WaitForSeconds(dashCooldown); // Wait for cooldown
         canDash = true; // Re-enable dashing
