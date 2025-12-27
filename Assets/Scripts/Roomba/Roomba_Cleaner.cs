@@ -10,7 +10,7 @@ public class Roomba_Cleaner : MonoBehaviour
     public ParticleSystem cleaningVFX;
 
     // State tracking for logging
-    private bool wasCleaningBlood = false;
+    //private bool wasCleaningBlood = false;
 
     // TIMER: Keeps the VFX alive for a momenet after cleaning stops
     private float vfxCooldownTimer = 0f;
