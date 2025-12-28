@@ -60,7 +60,15 @@ public class GameManager : MonoBehaviour
     public void AddScore(int amount)
     {
         score += amount;
-        UpdateUI();
+        
+        if (roombaPlayer != null)
+        {
+            UpdateUI(roombaPlayer.currentCapacity, roombaPlayer.maxCapacity);
+        }
+        else
+        {
+            UpdateUI();
+        }
     }
 
     public void CollectDust()

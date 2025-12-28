@@ -3297,7 +3297,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Roomba_Cleaner
   cleaningVFX: {fileID: 610144572}
-  pixelsPerTrashUnit: 2000
+  pixelsPerTrashUnit: 8000
 --- !u!96 &500659565
 TrailRenderer:
   serializedVersion: 4
