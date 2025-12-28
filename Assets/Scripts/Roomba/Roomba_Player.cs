@@ -41,7 +41,6 @@ public class Roomba_Player : MonoBehaviour
     public GameObject binBagPrefab;    // Prefab for the bin bag to instantiate
     public GameObject suctionVFXPrefab;        // VFX prefab for dust suction effect
     public GameObject promptCanvas;          // UI canvas for prompts 
-    [SerializeField] private Cinemachine_Shake Cinemachine_Shake; // Reference to the Cinemachine shake script
     [SerializeField] private TrailRenderer dashTrail; // Reference to the dash trail renderer
 
     [Header("Audio")]
@@ -408,7 +407,7 @@ public class Roomba_Player : MonoBehaviour
 
         GetComponentInChildren<MeshRenderer>().material.color = Color.yellow; // Change roomba to yellow to indicate emptying
 
-        Cinemachine_Shake.ShakeCamera(shakeIntensity, shakeTime); // Start camera shake effect
+        // Camera Shake Effect here
 
         yield return new WaitForSeconds(5); // Simulate time taken to empty bag and audio to end
 
