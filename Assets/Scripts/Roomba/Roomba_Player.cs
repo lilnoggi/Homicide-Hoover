@@ -19,15 +19,13 @@ public class Roomba_Player : MonoBehaviour
     [SerializeField] private float dashDuration = 0.5f;
     [SerializeField] private float dashCooldown = 1f;
     private Rigidbody rb; // Reference to the Rigidbody component
-    //private Vector3 movement; // Movement vector
-    //private Transform cameraTransform; // Reference to the main camera's transform         // Movement vector
     private float moveInput; // Forward/backward input
     private float rotateInput; // Left/right rotation input
 
     [Header("Status Variables")]
     public int currentCapacity;            // Current dust capacity
     public int maxCapacity = 10;            // Maximum dust capacity before Roomba needs to empty
-    [SerializeField] int hits;                 // Amount of times the player has hit furniture                // Amount of dust player collected                          // Player's score
+    [SerializeField] int hits;                 // Amount of times the player has hit furniture                
 
     [Header("State Flags")]
     private bool isBroken = false; // Prevents speed from being reset while broken

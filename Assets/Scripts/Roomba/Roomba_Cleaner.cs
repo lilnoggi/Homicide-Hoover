@@ -12,8 +12,22 @@ public class Roomba_Cleaner : MonoBehaviour
     // State tracking for logging
     //private bool wasCleaningBlood = false;
 
+    [Header("Settings")]
+    [Tooltip("How many pixels equal 1 unit of trash" +
+        "\\Higher number = Bag fills slower. Lower = Bag fills faster. ")]
+    public float pixelsPerTrashUnit = 500f;
+    private float bloodPixelAccumulator = 0f; // Internal tracker for the "Bucket" logic
+
     // TIMER: Keeps the VFX alive for a momenet after cleaning stops
     private float vfxCooldownTimer = 0f;
+
+    [Header("References")]
+    private Roomba_Player roombaPlayer;
+
+    private void Start()
+    {
+        roombaPlayer = GetComponent<Roomba_Player>();
+    }
 
     void Update()
     {
@@ -38,6 +52,13 @@ public class Roomba_Cleaner : MonoBehaviour
         Vector3 startPos = transform.position + Vector3.up;
         Vector3 direction = Vector3.down;
 
+        // 1. SAFETY CHECK: Is the bag full?
+        // If bag is full, STOP CLEANING
+        if (roombaPlayer != null && roombaPlayer.currentCapacity >= roombaPlayer.maxCapacity)
+        {
+            return false;
+        }
+
         Debug.DrawRay(startPos, direction * 2.0f, Color.green);
 
         if (Physics.Raycast(startPos, direction, out hit, 2.0f, layerMask))
@@ -55,10 +76,31 @@ public class Roomba_Cleaner : MonoBehaviour
                 // 2. Add score based on pixels cleaned
                 if (pixelsCleaned > 0)
                 {
+                    // --- SCORING --- \\\
                     // Balance: Divide by 10 to reduce score gain
                     int scoreGain = Mathf.Max(1, pixelsCleaned / 10);
 
                     GameManager.Instance.AddScore(scoreGain);
+
+                    // --- CAPACITY LOGIC --- \\\
+                    if (roombaPlayer != null)
+                    {
+                        // Add pixels to the hidden bucket
+                        bloodPixelAccumulator += pixelsCleaned;
+
+                        // Did the bucket overflow?
+                        if (bloodPixelAccumulator >= pixelsPerTrashUnit)
+                        {
+                            // Reset the bucket
+                            bloodPixelAccumulator -= pixelsPerTrashUnit;
+
+                            // Add 1 real "Trash Item" to the bag
+                            roombaPlayer.currentCapacity++;
+
+                            // Update the UI
+                            GameManager.Instance.UpdateUI(roombaPlayer.currentCapacity, roombaPlayer.maxCapacity);
+                        }
+                    }
 
                     return true; // Returns TRUE: Currently cleaning blood
                 }

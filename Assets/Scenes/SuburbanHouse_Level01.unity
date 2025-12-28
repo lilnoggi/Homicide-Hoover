@@ -3297,6 +3297,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Roomba_Cleaner
   cleaningVFX: {fileID: 610144572}
+  pixelsPerTrashUnit: 2000
 --- !u!96 &500659565
 TrailRenderer:
   serializedVersion: 4
@@ -11754,8 +11755,8 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 963194225}
   serializedVersion: 2
-  m_LocalRotation: {x: 0.2953907, y: -0.049852937, z: 0.015436962, w: 0.9539501}
-  m_LocalPosition: {x: 0.6692095, y: 18.360777, z: -24.656208}
+  m_LocalRotation: {x: 0.16323034, y: -0.6224839, z: 0.13485782, w: 0.7534474}
+  m_LocalPosition: {x: 27.159817, y: 13.891649, z: -4.135163}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
