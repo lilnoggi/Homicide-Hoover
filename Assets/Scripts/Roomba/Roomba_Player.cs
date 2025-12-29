@@ -19,8 +19,9 @@ public class Roomba_Player : MonoBehaviour
     [SerializeField] private float dashDuration = 0.5f;
     [SerializeField] private float dashCooldown = 1f;
     private Rigidbody rb; // Reference to the Rigidbody component
-    private float moveInput; // Forward/backward input
-    private float rotateInput; // Left/right rotation input
+
+    [Header("Control Settings")]
+    public bool useTankControls = true;
 
     [Header("Status Variables")]
     public int currentCapacity;            // Current dust capacity
@@ -49,10 +50,6 @@ public class Roomba_Player : MonoBehaviour
     public AudioClip[] furnitureHitSounds;
     public AudioClip vacuumLoop, vacuumOff, vacuumOn, brokeDown, disposal, dash;
 
-    [Header("Cinemachine Shake")]
-    [SerializeField] private float shakeIntensity = 10f; // Intensity of the shake
-    [SerializeField] private float shakeTime = 5f;    // Duration of the shake
-
     private void Awake()
     {
         rb = GetComponent<Rigidbody>(); // Get the Rigidbody component
@@ -66,32 +63,56 @@ public class Roomba_Player : MonoBehaviour
             audioSource.loop = true;      // Enable looping
             audioSource.Play();          // Start the loop
         }
-
-        // REMOVED: Camera.main reference is no longer needed for tank controls
     }
 
     void Update()
     {
         HandleDisposalInput(); // Check for disposal input
 
-        // === TANK CONTROLS INPUT === \\
-        // W/S moves Forward/Backward
-        moveInput = Input.GetAxis("Vertical"); // Get forward/backward input
-        // A/D rotates Left/Right
-        rotateInput = Input.GetAxis("Horizontal"); // Get left/right rotation input
+        // Get Raw Input
+        float horizontalInput = Input.GetAxis("Horizontal"); // A / D or Left / Right
+        float verticalInput = Input.GetAxis("Vertical"); // W / S or Up / Down
 
-        // Rotate the Roomba immeditaely based on input
-        if (!isBroken && !isEmptying)
+        // === OPTION A: TANK CONTROLS INPUT === \\
+        if (useTankControls)
         {
-            float turnAmount = rotateInput * rotationSpeed * Time.deltaTime;
-            transform.Rotate(0f, turnAmount, 0f);
-        }
+            // Rotate the Roomba immeditaely based on input
+            if (!isBroken && !isEmptying)
+            {
+                // Rotate based on A/D
+                float turnAmount = horizontalInput * rotationSpeed * Time.deltaTime;
+                // Rotate the body
+                transform.Rotate(0f, turnAmount, 0f);
+            }
 
-        MoveRoomba(); // Handle Roomba movement
+            // Move forward/backward based on W/S
+            Vector3 tankMove = transform.forward * verticalInput;
+            // Pass "false" because rotation is handled manually
+            MoveRoomba(tankMove, false);
+        }
+        // === OPTION B: CAMERA RELATIVE CONTROLS INPUT === \\
+        else
+        {
+            // Input moves relative to camera direction
+            // Roomba automatically faces movement direction
+
+            Transform cam = Camera.main.transform;
+            Vector3 camForward = cam.forward;
+            Vector3 camRight = cam.right;
+
+            camForward.y = 0; camRight.y = 0; // Flatten to horizontal plane
+            camForward.Normalize(); camRight.Normalize();
+
+            // Calculate direction relative to camera
+            Vector3 camRelMove = (camForward * verticalInput + camRight * horizontalInput).normalized;
+
+            // Pass "true" to let MoveRoomba handle rotation
+            MoveRoomba(camRelMove, true);
+        }
     }
 
     // === ROOMBA MOVEMENT === \\
-    void MoveRoomba()
+    void MoveRoomba(Vector3 direction, bool autoRotate)
     {
         // --- Only allow movement if not broken or emptying --- \\
         if (isBroken || isEmptying)
@@ -100,7 +121,8 @@ public class Roomba_Player : MonoBehaviour
             return; // Exit the method early if broken
         }
 
-        // 1. Calculate the "Normal" intended speed
+        // --- SPEED CALCULATION --- \\
+        // Calculate the "Normal" intended speed
         float targetSpeed = baseMoveSpeed;
 
         // --- Apply slowdown capacity penalty --- \\
@@ -120,7 +142,7 @@ public class Roomba_Player : MonoBehaviour
             targetSpeed = 2f;
         }
 
-        // 2. Dash Override
+        // Dash Override
         // If dashing, set speed to dash speed
         if (isDashing)
         {
@@ -130,14 +152,18 @@ public class Roomba_Player : MonoBehaviour
         moveSpeed = targetSpeed;
 
         // --- PHYSICS MOVEMENT --- \\
-        // Move in the direction the Roomba is currently FACING
-        if (Mathf.Abs(moveInput) > 0.1f)
+        if (direction.magnitude >= 0.1f)
         {
-            // Calculate velocity based on forward vector
-            Vector3 desiredVelocity = transform.forward * moveInput * moveSpeed;
+            // Move in the calculated direction
+            rb.linearVelocity = new Vector3(direction.x * moveSpeed, rb.linearVelocity.y, direction.z * moveSpeed);
 
-            // Apply velocity
-            rb.linearVelocity = new Vector3(desiredVelocity.x, rb.linearVelocity.y, desiredVelocity.z);
+            // --- AUTO ROTATE (CAMERA RELATIVE ONLY) --- \\
+            if (autoRotate)
+            {
+                // Rotate to face movement direction smoothly
+                Quaternion targetRotation = Quaternion.LookRotation(direction);
+                transform.rotation = Quaternion.Slerp(transform.rotation, targetRotation, rotationSpeed * Time.deltaTime);
+            }
         }
         else
         {

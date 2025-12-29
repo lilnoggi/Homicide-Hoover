@@ -10,7 +10,23 @@ using UnityEngine.SceneManagement;
 public class ButtonManager : MonoBehaviour
 {
     public GameObject tutorialPanel; // Reference to the tutorial panel UI
-    public GameObject knifeCollectedPanel; 
+    public GameObject settingsPanel;
+    public GameObject knifeCollectedPanel;
+
+    public UnityEngine.UI.Toggle controlsToggle;
+
+    private Roomba_Player roombaPlayer;
+
+    private void Start()
+    {
+        roombaPlayer = FindAnyObjectByType<Roomba_Player>();
+
+        // Sync the visual checkbox to the actual setting
+        if (controlsToggle != null && roombaPlayer != null)
+        {
+            controlsToggle.isOn = roombaPlayer.useTankControls;
+        }
+    }
 
     public void Update()
     {
@@ -30,6 +46,24 @@ public class ButtonManager : MonoBehaviour
         Cursor.visible = true; // Make the cursor visible
     }
 
+    public void SettingsButton()
+    {
+        settingsPanel.SetActive(true); // Show the settings panel
+    }
+
+    public void SetTankControls(bool isTank)
+    {
+        if (roombaPlayer != null)
+        {
+            roombaPlayer.useTankControls = isTank;
+            Debug.Log("Controls set to " + (isTank ? "Tank" : "Standard"));
+        }
+    }
+
+    public void ExitSettingsPanel()
+    {
+        settingsPanel.SetActive(false); // Hide the settings panel
+    }
     // === TUTORIAL BUTTON HANDLER === \\
     public void TutorialButton()
     {
