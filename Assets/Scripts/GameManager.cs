@@ -25,6 +25,10 @@ public class GameManager : MonoBehaviour
     public Image dashUI;
     public Image senseUI;
 
+    [Header("HUD References")]
+    public Image capacityBarFill;
+    public Image damageBarFill;
+
     [Header("Script References")]
     private ButtonManager buttonManager;
     private Roomba_Player roombaPlayer;
@@ -90,12 +94,29 @@ public class GameManager : MonoBehaviour
         if (dustCounter) dustCounter.text = $"Dust Collected: {dustCollected}/{totalDustRequired}";
         if (capacityCounter) capacityCounter.text = $"Capacity: {currentCapacity}/{maxCapacity}";
         if (hitsCounter) hitsCounter.text = $"Furniture Hits: {furnitureHits}";
+
+        if (capacityBarFill != null)
+        {
+            // Convert to 0.0 - 1.0 percentage
+            float fillAmount = (float)currentCapacity / maxCapacity;
+            capacityBarFill.fillAmount = fillAmount;
+
+            //capacityBarFill.color = (fillAmount >= 1f) ? Color.red : Color.green;
+        }
+
+        if (damageBarFill != null)
+        {
+            float maxHits = 3f;
+            float damageAmount = (float)furnitureHits / maxHits;
+
+            damageBarFill.fillAmount = damageAmount;
+        }
     }
 
     public void RegisterFurnitureHit(int cap, int max)
     {
         furnitureHits++;
-        AddScore(-50); // This calls UpdateUI automatically now
+        AddScore(-500); // This calls UpdateUI automatically now
     }
      
     // === COOLDOWN ANIMATIONS === \\
