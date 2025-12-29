@@ -11,6 +11,7 @@ public class ButtonManager : MonoBehaviour
 {
     public GameObject tutorialPanel; // Reference to the tutorial panel UI
     public GameObject settingsPanel;
+    public GameObject audioSettingsPanel;
     public GameObject knifeCollectedPanel;
 
     public UnityEngine.UI.Toggle controlsToggle;
@@ -46,6 +47,7 @@ public class ButtonManager : MonoBehaviour
         Cursor.visible = true; // Make the cursor visible
     }
 
+    // === SETTINGS === \\
     public void SettingsButton()
     {
         settingsPanel.SetActive(true); // Show the settings panel
@@ -60,10 +62,23 @@ public class ButtonManager : MonoBehaviour
         }
     }
 
+    // --- Audio --- \\
+    public void OpenAudioPanel()
+    {
+        audioSettingsPanel.SetActive(true);
+    }
+
+    public void ExitAudioPanel()
+    {
+        audioSettingsPanel.SetActive(false);
+    }
+
     public void ExitSettingsPanel()
     {
         settingsPanel.SetActive(false); // Hide the settings panel
     }
+    // === END OF SETTINGS === \\
+
     // === TUTORIAL BUTTON HANDLER === \\
     public void TutorialButton()
     {
