@@ -20,7 +20,8 @@ public class GameManager : MonoBehaviour
     public TextMeshProUGUI capacityCounter;
     public TextMeshProUGUI hitsCounter;
     public GameObject gameWonCanvas;
-    [Header("Hotbar UI References")]
+
+    [Header("Hotbar UI")]
     public Image dashUI;
     public Image senseUI;
 
@@ -30,7 +31,6 @@ public class GameManager : MonoBehaviour
 
     private void Awake()
     {
-        // Singleton pattern: ensures only one GameManager exists
         if (Instance == null) { Instance = this; }
         else { Destroy(gameObject); }
 
@@ -40,60 +40,50 @@ public class GameManager : MonoBehaviour
 
     private void Start()
     {
-        UpdateUI(0, 10);
+        // Safe Update
+        if (roombaPlayer != null)
+            UpdateUI(roombaPlayer.currentCapacity, roombaPlayer.maxCapacity);
+        else
+            UpdateUI(0, 10);
 
-        // --- INITIALISE ICONS --- \\
-        if (dashUI != null)
-        {
-            dashUI.fillAmount = 1;
-            dashUI.color = Color.white;
-        }
-
-        if (senseUI != null)
-        {
-            senseUI.fillAmount = 1;
-            senseUI.color = Color.white;
-        }
+        InitIcons();
     }
 
-    // === SCORE METHODS === \\
+    void InitIcons()
+    {
+        if (dashUI != null) { dashUI.fillAmount = 1; dashUI.color = Color.white; }
+        if (senseUI != null) { senseUI.fillAmount = 1; senseUI.color = Color.white; }
+    }
+
+    // === GAME LOGIC === \\
+
     public void AddScore(int amount)
     {
         score += amount;
-        
-        if (roombaPlayer != null)
-        {
-            UpdateUI(roombaPlayer.currentCapacity, roombaPlayer.maxCapacity);
-        }
-        else
-        {
-            UpdateUI();
-        }
+        // Auto-fetch capacity so we don't reset the UI to 0/10 by accident
+        if (roombaPlayer != null) UpdateUI(roombaPlayer.currentCapacity, roombaPlayer.maxCapacity);
+        else UpdateUI();
     }
 
     public void CollectDust()
     {
         dustCollected++;
         AddScore(20);
-        UpdateUI();
     }
-    // === SCORE METHODS END === \\
 
-    // === EVIDENCE === \\
     public void FoundKnife()
     {
         hasMurderWeapon = true;
+        if (buttonManager != null)
+        {
+            buttonManager.knifeCollectedPanel.SetActive(true);
+            TogglePause(true);
+        }
         UpdateUI();
-
-        buttonManager.knifeCollectedPanel.SetActive(true);
-        Time.timeScale = 0f; // Pause the game
-        Cursor.lockState = CursorLockMode.None;
-        Cursor.visible = true;
     }
 
-    // === EVIDENCE END === \\
+    // === UI UPDATES === \\
 
-    // === UPDATE UI METHODS === \\
     public void UpdateUI(int currentCapacity = 0, int maxCapacity = 10)
     {
         if (scoreCounter) scoreCounter.text = $"Score: {score}";
@@ -102,94 +92,51 @@ public class GameManager : MonoBehaviour
         if (hitsCounter) hitsCounter.text = $"Furniture Hits: {furnitureHits}";
     }
 
-    // --- Dash UI --- \\
-    // Call this form Roomba_Player when dash starts
-    public void TriggerDashCooldownUI(float dashTime, float cooldownTime)
-    {
-        if (dashUI != null)
-        {
-            StartCoroutine(AnimateDashUI(dashTime, cooldownTime));
-        }
-    }
-
-    private IEnumerator AnimateDashUI(float dashTime, float cooldownTime)
-    {
-        // ACTIVE DASHING
-        // Make icon dark
-        dashUI.color = Color.gray;
-        dashUI.fillAmount = 1;
-
-        // Wait for dash to finish
-        yield return new WaitForSeconds(dashTime);
-
-        // COOLDOWN
-        dashUI.color = new Color(0.5f, 0.5f, 0.5f, 0.5f); // Semi-transparent gray
-        dashUI.fillAmount = 0;
-
-        float timer = 0f;
-        while (timer < cooldownTime)
-        {
-            timer += Time.deltaTime;
-            // Calulcate percentage
-            float progress = timer / cooldownTime;
-
-            // Update the UI fill
-            dashUI.fillAmount = progress;
-
-            yield return null;
-        }
-
-        // READY TO DASH
-        dashUI.fillAmount = 1;
-        dashUI.color = Color.white; // Back to normal color
-    }
-
-    // --- Sense UI --- \\
-    public void TriggerSenseCooldownUI(float senseDuration, float cooldownTime)
-    {
-        if (senseUI != null)
-        {
-            StartCoroutine(AnimateSenseUI(senseDuration, cooldownTime));
-        }
-    }
-
-    private IEnumerator AnimateSenseUI(float senseDuration, float cooldownTime)
-    {
-        // ACTIVE SENSING
-        // Make icon dark
-        senseUI.color = Color.gray;
-        senseUI.fillAmount = 1;
-        // Wait for sense to finish
-        yield return new WaitForSeconds(senseDuration);
-        // COOLDOWN
-        senseUI.color = new Color(0.5f, 0.5f, 0.5f, 0.5f); // Semi-transparent gray
-        senseUI.fillAmount = 0;
-        float timer = 0f;
-        while (timer < cooldownTime)
-        {
-            timer += Time.deltaTime;
-            // Calulcate percentage
-            float progress = timer / cooldownTime;
-            // Update the UI fill
-            senseUI.fillAmount = progress;
-            yield return null;
-        }
-        // READY TO SENSE
-        senseUI.fillAmount = 1;
-        senseUI.color = Color.white; // Back to normal color
-    }
-    // === UPDATE UI END === \\
-
-    // === REGISTER FURNITURE HITS === \\
-    public void RegisterFurnitureHit(int currentRoombaCapacity, int maxRoombaCapacity)
+    public void RegisterFurnitureHit(int cap, int max)
     {
         furnitureHits++;
-        AddScore(-50);
-        UpdateUI(currentRoombaCapacity, maxRoombaCapacity);
+        AddScore(-50); // This calls UpdateUI automatically now
     }
-    // === REGISTER FURNITURE HITS END === \\
+     
+    // === COOLDOWN ANIMATIONS === \\
 
-    // === WIN CONDITION CHECK === \\
+    public void TriggerDashCooldownUI(float duration, float cooldown)
+    {
+        if (dashUI != null) StartCoroutine(AnimateIcon(dashUI, duration, cooldown));
+    }
+
+    public void TriggerSenseCooldownUI(float duration, float cooldown)
+    {
+        if (senseUI != null) StartCoroutine(AnimateIcon(senseUI, duration, cooldown));
+    }
+
+    // Combined Animation Coroutine (Reused for both Dash and Sense)
+    private IEnumerator AnimateIcon(Image icon, float activeTime, float cooldownTime)
+    {
+        // Active State
+        icon.color = Color.gray;
+        icon.fillAmount = 1;
+        yield return new WaitForSeconds(activeTime);
+
+        // Cooldown State
+        icon.color = new Color(0.5f, 0.5f, 0.5f, 0.5f);
+        icon.fillAmount = 0;
+
+        float timer = 0f;
+        while (timer < cooldownTime)
+        {
+            timer += Time.deltaTime;
+            icon.fillAmount = timer / cooldownTime;
+            yield return null;
+        }
+
+        // Ready State
+        icon.fillAmount = 1;
+        icon.color = Color.white;
+    }
+
+    // === WIN STATE === \\
+
     public void CheckWinCondition(int currentRoombaCapacity)
     {
         if (dustCollected >= totalDustRequired && hasMurderWeapon && currentRoombaCapacity == 0)
@@ -197,16 +144,19 @@ public class GameManager : MonoBehaviour
             WinGame();
         }
     }
-    // === WIN CONDTION CHECK END === \\
 
-    // === WIN GAME === \\
     public void WinGame()
     {
         gameWonCanvas.SetActive(true);
-        Time.timeScale = 0f; // Pause the game
-        Cursor.lockState = CursorLockMode.None;
-        Cursor.visible = true;
+        TogglePause(true);
         Debug.Log("Evidence Disposed. Case Closed!");
     }
-    // === WIN GAME END === \\
+
+    // Helper to pause/unpause without repeating code
+    void TogglePause(bool pause)
+    {
+        Time.timeScale = pause ? 0f : 1f;
+        Cursor.lockState = pause ? CursorLockMode.None : CursorLockMode.Locked;
+        Cursor.visible = pause;
+    }
 }
