@@ -17,7 +17,6 @@ public class GameManager : MonoBehaviour
     [Header("UI References")]
     public TextMeshProUGUI scoreCounter;
     public TextMeshProUGUI dustCounter;
-    public TextMeshProUGUI capacityCounter;
     public TextMeshProUGUI hitsCounter;
     public GameObject gameWonCanvas;
 
@@ -92,7 +91,6 @@ public class GameManager : MonoBehaviour
     {
         if (scoreCounter) scoreCounter.text = $"Score: {score}";
         if (dustCounter) dustCounter.text = $"Dust Collected: {dustCollected}/{totalDustRequired}";
-        if (capacityCounter) capacityCounter.text = $"Capacity: {currentCapacity}/{maxCapacity}";
         if (hitsCounter) hitsCounter.text = $"Furniture Hits: {furnitureHits}";
 
         if (capacityBarFill != null)
