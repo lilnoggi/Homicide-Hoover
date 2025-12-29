@@ -20566,7 +20566,7 @@ PrefabInstance:
       objectReference: {fileID: 1822417155}
     - target: {fileID: 4109959592523349254, guid: 0859fb3b788891c4e81e9901db471632, type: 3}
       propertyPath: rotationSpeed
-      value: 50
+      value: 5
       objectReference: {fileID: 0}
     - target: {fileID: 4109959592523349254, guid: 0859fb3b788891c4e81e9901db471632, type: 3}
       propertyPath: shakeDuration
