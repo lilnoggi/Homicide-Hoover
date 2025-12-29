@@ -2,23 +2,24 @@ using System.Collections;
 using UnityEngine;
 
 public class Roomba_Player : MonoBehaviour
-
-//_____________________________________\\
-// ROOMBA_PLAYER SCRIPT                        \\_______\\
-// This script handles the Roomba movement logic. \\
-// It also manages dust collection, furniture      \\
-// collisions, and disposal mechanics.              \\
-//___________________________________________________\\
 {
+    // ======================================================================== \\
+    // ROOMBA PLAYER CONTROLLER
+    // Handles Movement, Interactions, and State Management
+    // ======================================================================== \\
+
+    #region VARIABLES
+
     // === VARIABLES === \\
     [Header("Movement Settings")]
     private const float baseMoveSpeed = 10f; // Base movement speed
     [SerializeField] private float moveSpeed = baseMoveSpeed; // How fast the Roomba can move
     [SerializeField] private float rotationSpeed = 150f; // How fast the Roomba can rotate (for tank controls)
+
+    [Header("Dash Settings")]
     [SerializeField] private float dashSpeed = 15;
     [SerializeField] private float dashDuration = 0.5f;
     [SerializeField] private float dashCooldown = 1f;
-    private Rigidbody rb; // Reference to the Rigidbody component
 
     [Header("Control Settings")]
     public bool useTankControls = true;
@@ -37,6 +38,11 @@ public class Roomba_Player : MonoBehaviour
     public bool isDashing = false;
     public bool canDash = true;
 
+    // INPUT STORAGE
+    private Vector3 currentMovementVector;
+    private float currentTurnAmount;
+    private bool shouldAutoRotate;
+
     [Header("References")]
     public GameObject disposalArea;     // Reference to the disposal area object
     public GameObject binBagPrefab;    // Prefab for the bin bag to instantiate
@@ -44,11 +50,16 @@ public class Roomba_Player : MonoBehaviour
     public GameObject promptCanvas;          // UI canvas for prompts 
     [SerializeField] private TrailRenderer dashTrail; // Reference to the dash trail renderer
 
-    [Header("Audio")]
+    // Components
+    private Rigidbody rb; // Reference to the Rigidbody component
     private AudioSource audioSource;
+
+    [Header("Audio")]
     public AudioClip pickupSound;
     public AudioClip[] furnitureHitSounds;
     public AudioClip vacuumLoop, vacuumOff, vacuumOn, brokeDown, disposal, dash;
+
+    #endregion
 
     private void Awake()
     {
@@ -65,118 +76,105 @@ public class Roomba_Player : MonoBehaviour
         }
     }
 
+    // UPDATE: Get Input & Decisions Here
     void Update()
     {
         HandleDisposalInput(); // Check for disposal input
-
-        // Get Raw Input
-        float horizontalInput = Input.GetAxis("Horizontal"); // A / D or Left / Right
-        float verticalInput = Input.GetAxis("Vertical"); // W / S or Up / Down
-
-        // === OPTION A: TANK CONTROLS INPUT === \\
-        if (useTankControls)
-        {
-            // Rotate the Roomba immeditaely based on input
-            if (!isBroken && !isEmptying)
-            {
-                // Rotate based on A/D
-                float turnAmount = horizontalInput * rotationSpeed * Time.deltaTime;
-                // Rotate the body
-                transform.Rotate(0f, turnAmount, 0f);
-            }
-
-            // Move forward/backward based on W/S
-            Vector3 tankMove = transform.forward * verticalInput;
-            // Pass "false" because rotation is handled manually
-            MoveRoomba(tankMove, false);
-        }
-        // === OPTION B: CAMERA RELATIVE CONTROLS INPUT === \\
-        else
-        {
-            // Input moves relative to camera direction
-            // Roomba automatically faces movement direction
-
-            Transform cam = Camera.main.transform;
-            Vector3 camForward = cam.forward;
-            Vector3 camRight = cam.right;
-
-            camForward.y = 0; camRight.y = 0; // Flatten to horizontal plane
-            camForward.Normalize(); camRight.Normalize();
-
-            // Calculate direction relative to camera
-            Vector3 camRelMove = (camForward * verticalInput + camRight * horizontalInput).normalized;
-
-            // Pass "true" to let MoveRoomba handle rotation
-            MoveRoomba(camRelMove, true);
-        }
+        CalculateMovementInput();
     }
 
-    // === ROOMBA MOVEMENT === \\
-    void MoveRoomba(Vector3 direction, bool autoRotate)
+    // FIXED UPDATE: Apply Physics Here
+    private void FixedUpdate()
     {
-        // --- Only allow movement if not broken or emptying --- \\
+        ApplyMovementPhysics();
+    }
+
+    #region MOVEMENT LOGIC
+
+    void CalculateMovementInput()
+    {
         if (isBroken || isEmptying)
         {
-            rb.linearVelocity = Vector3.zero; // Stop movement
-            return; // Exit the method early if broken
+            currentMovementVector = Vector3.zero;
+            currentTurnAmount = 0;
+            return;
         }
 
-        // --- SPEED CALCULATION --- \\
-        // Calculate the "Normal" intended speed
-        float targetSpeed = baseMoveSpeed;
+        // Get Input
+        float h = Input.GetAxis("Horizontal");
+        float v = Input.GetAxis("Vertical");
 
-        // --- Apply slowdown capacity penalty --- \\
-        if (currentCapacity >= maxCapacity)
-        {
-            targetSpeed = 5f;
-            isFull = true;
-        }
-        else
-        {
-            isFull = false;
-        }
-
-        // --- Apply slowdown from dust collection --- \\
-        if (isSlowed)
-        {
-            targetSpeed = 2f;
-        }
-
-        // Dash Override
-        // If dashing, set speed to dash speed
-        if (isDashing)
-        {
-            targetSpeed = dashSpeed;
-        }
-
-        moveSpeed = targetSpeed;
-
-        // --- PHYSICS MOVEMENT --- \\
-        if (direction.magnitude >= 0.1f)
-        {
-            // Move in the calculated direction
-            rb.linearVelocity = new Vector3(direction.x * moveSpeed, rb.linearVelocity.y, direction.z * moveSpeed);
-
-            // --- AUTO ROTATE (CAMERA RELATIVE ONLY) --- \\
-            if (autoRotate)
-            {
-                // Rotate to face movement direction smoothly
-                Quaternion targetRotation = Quaternion.LookRotation(direction);
-                transform.rotation = Quaternion.Slerp(transform.rotation, targetRotation, rotationSpeed * Time.deltaTime);
-            }
-        }
-        else
-        {
-            // Stop ONLY horizontal movement, gravity acts
-            rb.linearVelocity = new Vector3(0, rb.linearVelocity.y, 0);
-        }
-
-        // --- Dash Input --- \\
-        if (Input.GetKeyDown(KeyCode.LeftShift) && !isBroken && !isEmptying && canDash)
+        // --- DASH INPUT --- \\
+        if (Input.GetKeyDown(KeyCode.LeftShift) && canDash && !isBroken && !isEmptying)
         {
             StartCoroutine(DashCoroutine());
         }
+
+        // --- SPEED CALCULATION --- \\
+        float targetSpeed = baseMoveSpeed;
+        if (currentCapacity >= maxCapacity) targetSpeed = 5f;
+        if (isSlowed) targetSpeed = 2f;
+        if (isDashing) targetSpeed = dashSpeed;
+
+        moveSpeed = targetSpeed;
+
+        // --- CALCULATE VECTORS --- \\
+        if (useTankControls)
+        {
+            // TANK: Rotate directly, Move forward
+            currentTurnAmount = h * rotationSpeed * Time.fixedDeltaTime;
+            currentMovementVector = transform.forward * v * moveSpeed;
+            shouldAutoRotate = false;
+        }
+        else
+        {
+            // MODERN: Move relative to camera
+            Transform cam = Camera.main.transform;
+            Vector3 camFwd = cam.forward;
+            Vector3 camRt = cam.right;
+            camFwd.y = 0; camRt.y = 0;
+            camFwd.Normalize(); camRt.Normalize();
+
+            Vector3 direction = (camFwd * v + camRt * h).normalized;
+            currentMovementVector = direction * moveSpeed;
+            currentTurnAmount = 0; // Handled by auto-rotate
+            shouldAutoRotate = (direction.magnitude >= 0.1f);
+        }
     }
+
+    void ApplyMovementPhysics()
+    {
+        // 1. Rotation (Tank Mode)
+        if (useTankControls && Mathf.Abs(currentTurnAmount) > 0)
+        {
+            // For physics rotation, MoveRotation is smoother
+            Quaternion turnOffSet = Quaternion.Euler(0, currentTurnAmount * 50f, 0); // Multiplier for FixedDeltaTime feel
+            rb.MoveRotation(rb.rotation * turnOffSet);
+        }
+
+        // 2. Movement (Both Modes)
+        if (currentMovementVector.magnitude >= 0.1f || useTankControls)
+        {
+            // Apply velocity directly
+            rb.linearVelocity = new Vector3(currentMovementVector.x, rb.linearVelocity.y, currentMovementVector.z);
+
+            // 3. Rotation (Modern Mode Auto-Turn)
+            if (shouldAutoRotate)
+            {
+                Quaternion targetRotation = Quaternion.LookRotation(currentMovementVector);
+                transform.rotation = Quaternion.Slerp(transform.rotation, targetRotation, rotationSpeed * Time.fixedDeltaTime);
+            }
+        }
+        else
+        {
+            // Stop horizontal movement, keep gravity
+            rb.linearVelocity = new Vector3(0, rb.linearVelocity.y, 0);
+        }
+    }
+
+    #endregion
+
+    #region INTERACTION LOGIC
 
     // === HANDLE DISPOSAL INPUT === \\
     void HandleDisposalInput()
@@ -194,26 +192,20 @@ public class Roomba_Player : MonoBehaviour
         }
     }
 
-    // === EMPTY DUST BAG METHOD === \\
-    void EmptyBag()
+    public void AddDirtToCapacity()
     {
-        Debug.Log("Emptying dust bag...");
+        if (isBroken || currentCapacity >= maxCapacity) return;
 
-        SpawnBinBag(); // Spawn the bin bag
+        currentCapacity++;
+        GameManager.Instance.UpdateUI(currentCapacity, maxCapacity);
+
+        // Visuals
+        StartCoroutine(SlowDown());
+        PlaySound(pickupSound);
     }
 
-    // === SPAWN BIN BAG METHOD === \\
-    void SpawnBinBag()
-    {
-        if (binBagPrefab != null && disposalArea != null)
-        {
-            Vector3 spawnPosition = disposalArea.transform.position + new Vector3(0f, 1.5f, 0f); // Slightly above the disposal area
-            Instantiate(binBagPrefab, spawnPosition, Quaternion.identity); // Spawn the bin bag prefab
-        }
-    }
-
-    // === COLLIDE WITH FURNITURE === \\
-    private void OnCollisionEnter(Collision other) // CHANGED from private int to private void
+    // Collision for furniture bumping
+    private void OnCollisionEnter(Collision other) 
     {
         if (other.gameObject.CompareTag("Furniture") && !isBroken)
         {
@@ -222,8 +214,7 @@ public class Roomba_Player : MonoBehaviour
 
             PlayRandomSound(); // Play a random furniture hit sound
 
-
-            Debug.Log($"Bad Roomba! You hit: {hits} pieces of furniture!"); // Console output.
+            //Debug.Log($"Bad Roomba! You hit: {hits} pieces of furniture!"); // Console output.
 
             GetComponentInChildren<MeshRenderer>().material.color = Color.red; // The roomba changes red.
 
@@ -233,8 +224,6 @@ public class Roomba_Player : MonoBehaviour
             if (hits >= 3)
             {
                 isBroken = true; // Set broken state to true
-                // Stop the current vacuum sound instantly
-                audioSource.Stop();
 
                 // Start the entire break/fix sequence
                 StartCoroutine(BreakVacuumSequence(4.5f)); // 5 is the duration of the "break"
@@ -245,7 +234,7 @@ public class Roomba_Player : MonoBehaviour
         }
     }
 
-    // === TRIGGER ENTRY || Dust & Disposal === \\
+    // Trigger for Dust & Zone Entry
     private void OnTriggerEnter(Collider other)
     {
         if (other.CompareTag("Dust"))
@@ -258,16 +247,12 @@ public class Roomba_Player : MonoBehaviour
             }
 
             // --- Capacity Tracking --- \\
-            currentCapacity++; // Increase current capacity
             GameManager.Instance.CollectDust(); // Notify GameManager of dust collection
-            GameManager.Instance.UpdateUI(currentCapacity, maxCapacity); // Update UI with new capacity
+            AddDirtToCapacity(); // Capacity update & Sound
 
             // --- VFX LOGIC --- Instantiate and destroy in one flow
             GameObject vfx = Instantiate(suctionVFXPrefab, other.transform.position, Quaternion.identity);
             Destroy(vfx, 2f); // Destroy the VFX after 2 seconds
-
-            StartCoroutine(SlowDown()); // Start slowdown coroutine
-            PlaySound(pickupSound); // Play pickup sound
         }
 
         // === COLLIDE WITH DISPOSAL AREA === \\
@@ -275,11 +260,9 @@ public class Roomba_Player : MonoBehaviour
         {
             promptCanvas.SetActive(true); // Show prompt UI
             playerDetection = true; // Player is in disposal area
-            Debug.Log("In disposal area. Press 'E' to empty dust bag.");
         }
     }
 
-    // === TRIGGER EXIT || Disposal Area === \\
     private void OnTriggerExit(Collider other)
     {
         if (other.gameObject == disposalArea)
@@ -319,7 +302,10 @@ public class Roomba_Player : MonoBehaviour
     }
     // === COLLECT EVIDENCE END === \\
 
-    // === AUDIO === \\
+    #endregion
+
+    #region AUDIO HELPER
+
     private void PlaySound(AudioClip clip)
     {
         if (clip != null && audioSource != null) // Safety check
@@ -337,17 +323,13 @@ public class Roomba_Player : MonoBehaviour
             return; // Exit the method if there are no sounds to play
         }
 
-        // 1. Get a random index from 0 up to the array length.
-        int randomIndex = UnityEngine.Random.Range(0, furnitureHitSounds.Length);
-
-        // 2. Get the specific clip using the random index.
-        AudioClip randomClip = furnitureHitSounds[randomIndex];
-
-        // 3. Play the clip
-        PlaySound(randomClip);
+        PlaySound(furnitureHitSounds[Random.Range(0, furnitureHitSounds.Length)]);
     }
 
-    // === COROUTINES === \\
+    #endregion
+
+    #region COROUTINES
+
     IEnumerator ChangeColour()
     {
         yield return new WaitForSeconds(1); // Delay before changing back
@@ -359,23 +341,19 @@ public class Roomba_Player : MonoBehaviour
         }
     }
 
-    // --- Slow player down when dust is collected --- \\
     IEnumerator SlowDown()
     {
         isSlowed = true; // Set the slowed flag to true
 
-        moveSpeed = 2f; // Reduce speed
-
         yield return new WaitForSeconds(1); // Wait for 1 second
 
         isSlowed = false; // Reset the slowed flag
-
-        moveSpeed = 10f; // Restore speed
     }
 
     // --- The main sequence for stopping and restarting the vacuum --- \\
     IEnumerator BreakVacuumSequence(float delay)
     {
+        audioSource.Stop();
         PlaySound(brokeDown);
         // 1. Enter the "broken" state
         // Temporarily set speed to 0 to stop movement
@@ -404,9 +382,6 @@ public class Roomba_Player : MonoBehaviour
         GetComponentInChildren<MeshRenderer>().material.color = Color.aquamarine; // Change roomba back to normal colour
 
         isBroken = false; // Reset broken state
-
-        // Resume movement speed
-        moveSpeed = 10;
 
         // Restart the looping vacuum sound
         if (audioSource != null && vacuumLoop != null) // Safety check
@@ -457,8 +432,6 @@ public class Roomba_Player : MonoBehaviour
 
         isEmptying = false; // Reset emptying flag
 
-        moveSpeed = baseMoveSpeed; // Resume normal speed
-
         // Restart the looping vacuum sound
         if (audioSource != null && vacuumLoop != null) // Safety check
         {
@@ -494,5 +467,23 @@ public class Roomba_Player : MonoBehaviour
         canDash = true; // Re-enable dashing
     }
 
-    // === END OF COROUTINES === \\
+    #endregion
+
+    // === EMPTY DUST BAG METHOD === \\
+    void EmptyBag()
+    {
+        Debug.Log("Emptying dust bag...");
+
+        SpawnBinBag(); // Spawn the bin bag
+    }
+
+    // === SPAWN BIN BAG METHOD === \\
+    void SpawnBinBag()
+    {
+        if (binBagPrefab != null && disposalArea != null)
+        {
+            Vector3 spawnPosition = disposalArea.transform.position + new Vector3(0f, 1.5f, 0f); // Slightly above the disposal area
+            Instantiate(binBagPrefab, spawnPosition, Quaternion.identity); // Spawn the bin bag prefab
+        }
+    }
 }
