@@ -211,6 +211,7 @@ public class Roomba_Player : MonoBehaviour
         {
             hits++; // If the player collides with an object, the hit counter increases by 1.
             GameManager.Instance.RegisterFurnitureHit(currentCapacity, maxCapacity); // Notify GameManager of furniture hit
+            GameManager.Instance.UpdateDamageBar(hits);
 
             PlayRandomSound(); // Play a random furniture hit sound
 
@@ -227,9 +228,6 @@ public class Roomba_Player : MonoBehaviour
 
                 // Start the entire break/fix sequence
                 StartCoroutine(BreakVacuumSequence(4.5f)); // 5 is the duration of the "break"
-
-                // Reset the hit limit
-                hits = 0;
             }
         }
     }
@@ -382,6 +380,9 @@ public class Roomba_Player : MonoBehaviour
         GetComponentInChildren<MeshRenderer>().material.color = Color.aquamarine; // Change roomba back to normal colour
 
         isBroken = false; // Reset broken state
+
+        hits = 0; // Reset hits
+        GameManager.Instance.UpdateDamageBar(0); // Update damage bar in UI
 
         // Restart the looping vacuum sound
         if (audioSource != null && vacuumLoop != null) // Safety check

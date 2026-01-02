@@ -101,13 +101,14 @@ public class GameManager : MonoBehaviour
 
             //capacityBarFill.color = (fillAmount >= 1f) ? Color.red : Color.green;
         }
+    }
 
+    public void UpdateDamageBar(int currentHits)
+    {
         if (damageBarFill != null)
         {
-            float maxHits = 3f;
-            float damageAmount = (float)furnitureHits / maxHits;
-
-            damageBarFill.fillAmount = damageAmount;
+            float maxHits = 3;
+            damageBarFill.fillAmount = (float)currentHits / maxHits;
         }
     }
 
