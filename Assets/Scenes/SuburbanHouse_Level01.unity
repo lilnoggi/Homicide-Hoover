@@ -3581,7 +3581,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!224 &568826130
 RectTransform:
   m_ObjectHideFlags: 0
@@ -18881,9 +18881,9 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: 'Control the Roomba with WASD and vacuum up all evidence! Try not to bang
-    into any furniture or there''ll be consequences! Dump garbage in the blue disposal
-    area when capacity is full. '
+  m_text: Control the Roomba with WASD and vacuum up all evidence! Try not to bang
+    into any furniture or there'll be consequences! Dump garbage in the blue disposal
+    area when capacity is full. Use K and L to rotate the camera.
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: bb73de47389a6524197e52a2b091a63b, type: 2}
   m_sharedMaterial: {fileID: -6203524731902705976, guid: bb73de47389a6524197e52a2b091a63b, type: 2}
