@@ -56,6 +56,8 @@ public class GameManager : MonoBehaviour
     {
         if (dashUI != null) { dashUI.fillAmount = 1; dashUI.color = Color.white; }
         if (senseUI != null) { senseUI.fillAmount = 1; senseUI.color = Color.white; }
+        if (capacityBarFill != null) { capacityBarFill.fillAmount = 0; }
+        if (damageBarFill != null) { damageBarFill.fillAmount = 0; }
     }
 
     // === GAME LOGIC === \\
@@ -82,7 +84,7 @@ public class GameManager : MonoBehaviour
             buttonManager.knifeCollectedPanel.SetActive(true);
             TogglePause(true);
         }
-        UpdateUI();
+        UpdateUI(roombaPlayer.currentCapacity, roombaPlayer.maxCapacity);
     }
 
     // === UI UPDATES === \\
