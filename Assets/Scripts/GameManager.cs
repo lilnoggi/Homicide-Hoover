@@ -84,7 +84,7 @@ public class GameManager : MonoBehaviour
             buttonManager.knifeCollectedPanel.SetActive(true);
             TogglePause(true);
         }
-        UpdateUI();
+        UpdateUI(roombaPlayer.currentCapacity, roombaPlayer.maxCapacity);
     }
 
     // === UI UPDATES === \\
