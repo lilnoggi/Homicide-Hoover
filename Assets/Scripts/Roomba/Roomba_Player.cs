@@ -51,6 +51,7 @@ public class Roomba_Player : MonoBehaviour
     [SerializeField] private TrailRenderer dashTrail; // Reference to the dash trail renderer
 
     // Components
+    private Roomba_Health healthScript;
     private Rigidbody rb; // Reference to the Rigidbody component
     private AudioSource audioSource;
 
@@ -63,6 +64,8 @@ public class Roomba_Player : MonoBehaviour
 
     private void Awake()
     {
+        healthScript = GetComponent<Roomba_Health>();
+
         rb = GetComponent<Rigidbody>(); // Get the Rigidbody component
 
         audioSource = GetComponent<AudioSource>();
@@ -209,27 +212,19 @@ public class Roomba_Player : MonoBehaviour
     {
         if (other.gameObject.CompareTag("Furniture") && !isBroken)
         {
-            hits++; // If the player collides with an object, the hit counter increases by 1.
-            GameManager.Instance.RegisterFurnitureHit(currentCapacity, maxCapacity); // Notify GameManager of furniture hit
-            GameManager.Instance.UpdateDamageBar(hits);
-
-            PlayRandomSound(); // Play a random furniture hit sound
-
-            //Debug.Log($"Bad Roomba! You hit: {hits} pieces of furniture!"); // Console output.
-
-            GetComponentInChildren<MeshRenderer>().material.color = Color.red; // The roomba changes red.
-
-            StartCoroutine(ChangeColour()); // Start the colour change coroutine.
-
-            // --- CHECK FOR BREAKAGE --- \\
-            if (hits >= 3)
+            if (healthScript != null)
             {
-                isBroken = true; // Set broken state to true
-
-                // Start the entire break/fix sequence
-                StartCoroutine(BreakVacuumSequence(4.5f)); // 5 is the duration of the "break"
+                healthScript.TakeDamage(1);
             }
+
+            PlayRandomSound();
         }
+    }
+
+    public void RepairStation()
+    {
+        if (healthScript != null) healthScript.RepairFull();
+        PlaySound(pickupSound);
     }
 
     // Trigger for Dust & Zone Entry

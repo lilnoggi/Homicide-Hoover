@@ -19,6 +19,7 @@ public class GameManager : MonoBehaviour
     public TextMeshProUGUI dustCounter;
     public TextMeshProUGUI hitsCounter;
     public GameObject gameWonCanvas;
+    public GameObject gameOverPanel;
 
     [Header("Hotbar UI")]
     public Image dashUI;
@@ -57,7 +58,7 @@ public class GameManager : MonoBehaviour
         if (dashUI != null) { dashUI.fillAmount = 1; dashUI.color = Color.white; }
         if (senseUI != null) { senseUI.fillAmount = 1; senseUI.color = Color.white; }
         if (capacityBarFill != null) { capacityBarFill.fillAmount = 0; }
-        if (damageBarFill != null) { damageBarFill.fillAmount = 0; }
+        if (damageBarFill != null) { damageBarFill.fillAmount = 1; }
     }
 
     // === GAME LOGIC === \\
@@ -180,5 +181,15 @@ public class GameManager : MonoBehaviour
         Time.timeScale = pause ? 0f : 1f;
         Cursor.lockState = pause ? CursorLockMode.None : CursorLockMode.Locked;
         Cursor.visible = pause;
+    }
+
+    public void TriggerGameOver()
+    {
+        Debug.Log("Game Over!");
+        if (gameOverPanel != null)
+        {
+            gameOverPanel.SetActive(true);
+            TogglePause(true);
+        }
     }
 }
