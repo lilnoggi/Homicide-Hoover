@@ -44,19 +44,26 @@ public class GameManager : MonoBehaviour
 
     private void Start()
     {
+        InitIcons();
+
         // Safe Update
         if (roombaPlayer != null)
+        {
             UpdateUI(roombaPlayer.currentCapacity, roombaPlayer.maxCapacity);
+            UpdateDamageBar(0);
+        }
         else
+        {
             UpdateUI(0, 10);
-
-        InitIcons();
+        }
     }
 
     void InitIcons()
     {
         if (dashUI != null) { dashUI.fillAmount = 1; dashUI.color = Color.white; }
         if (senseUI != null) { senseUI.fillAmount = 1; senseUI.color = Color.white; }
+        
+        // Reset bars to empty/full as per design
         if (capacityBarFill != null) { capacityBarFill.fillAmount = 0; }
         if (damageBarFill != null) { damageBarFill.fillAmount = 1; }
     }
@@ -67,8 +74,10 @@ public class GameManager : MonoBehaviour
     {
         score += amount;
         // Auto-fetch capacity so we don't reset the UI to 0/10 by accident
-        if (roombaPlayer != null) UpdateUI(roombaPlayer.currentCapacity, roombaPlayer.maxCapacity);
-        else UpdateUI();
+        if (roombaPlayer != null) 
+            UpdateUI(roombaPlayer.currentCapacity, roombaPlayer.maxCapacity);
+        else 
+            UpdateUI(); // Fallback
     }
 
     public void CollectDust()
@@ -94,15 +103,12 @@ public class GameManager : MonoBehaviour
     {
         if (scoreCounter) scoreCounter.text = $"Score: {score}";
         if (dustCounter) dustCounter.text = $"Dust Collected: {dustCollected}/{totalDustRequired}";
-        if (hitsCounter) hitsCounter.text = $"Furniture Hits: {furnitureHits}";
 
         if (capacityBarFill != null)
         {
             // Convert to 0.0 - 1.0 percentage
             float fillAmount = (float)currentCapacity / maxCapacity;
             capacityBarFill.fillAmount = fillAmount;
-
-            //capacityBarFill.color = (fillAmount >= 1f) ? Color.red : Color.green;
         }
     }
 

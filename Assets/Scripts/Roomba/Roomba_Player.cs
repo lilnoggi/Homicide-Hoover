@@ -26,17 +26,21 @@ public class Roomba_Player : MonoBehaviour
 
     [Header("Status Variables")]
     public int currentCapacity;            // Current dust capacity
-    public int maxCapacity = 10;            // Maximum dust capacity before Roomba needs to empty
-    [SerializeField] int hits;                 // Amount of times the player has hit furniture                
+    public int maxCapacity = 10;            // Maximum dust capacity before Roomba needs to empty               
+
+    [Header("Camera Shake Settings")]
+    [SerializeField] private float shakeMagnitude = 0.05f; // Magnitude of the shake effect
+    [SerializeField] private float shakeDuration = 4.5f; // Duration of the Shake effect
 
     [Header("State Flags")]
+    public bool playerDetection = false; // Whether the player is in the disposal area
+    public bool isDashing = false;
+    public bool canDash = true;
     private bool isBroken = false; // Prevents speed from being reset while broken
     private bool isSlowed = false; // Prevents the next fix from being overridden
     public bool isFull = false;  // New flag for bag status
     private bool isEmptying = false; // Prevents multiple emptying actions
-    public bool playerDetection = false; // Whether the player is in the disposal area
-    public bool isDashing = false;
-    public bool canDash = true;
+
 
     // INPUT STORAGE
     private Vector3 currentMovementVector;
@@ -215,6 +219,12 @@ public class Roomba_Player : MonoBehaviour
             if (healthScript != null)
             {
                 healthScript.TakeDamage(1);
+
+                // Check if still alive
+                if (healthScript.currentHealth > 0)
+                {
+                    StartCoroutine(FlashRedSequence());
+                }
             }
 
             PlayRandomSound();
@@ -246,6 +256,8 @@ public class Roomba_Player : MonoBehaviour
             // --- VFX LOGIC --- Instantiate and destroy in one flow
             GameObject vfx = Instantiate(suctionVFXPrefab, other.transform.position, Quaternion.identity);
             Destroy(vfx, 2f); // Destroy the VFX after 2 seconds
+
+            Destroy(other.gameObject); // Remove dust object
         }
 
         // === COLLIDE WITH DISPOSAL AREA === \\
@@ -323,17 +335,6 @@ public class Roomba_Player : MonoBehaviour
 
     #region COROUTINES
 
-    IEnumerator ChangeColour()
-    {
-        yield return new WaitForSeconds(1); // Delay before changing back
-
-        // --- Return to original colour only if not currently in the BreakVaccuumSequence --- \\
-        if (!isBroken)
-        {
-            GetComponentInChildren<MeshRenderer>().material.color = Color.aquamarine; // Change roomba back to orginal colour
-        }
-    }
-
     IEnumerator SlowDown()
     {
         isSlowed = true; // Set the slowed flag to true
@@ -343,49 +344,13 @@ public class Roomba_Player : MonoBehaviour
         isSlowed = false; // Reset the slowed flag
     }
 
-    // --- The main sequence for stopping and restarting the vacuum --- \\
-    IEnumerator BreakVacuumSequence(float delay)
+    IEnumerator FlashRedSequence()
     {
-        audioSource.Stop();
-        PlaySound(brokeDown);
-        // 1. Enter the "broken" state
-        // Temporarily set speed to 0 to stop movement
-        moveSpeed = 0;
+        GetComponentInChildren<MeshRenderer>().material.color = Color.red; // Change roomba to red on collision
 
-        // Play the vacuum OFF sound
-        PlaySound(vacuumOff);
-
-        GetComponentInChildren<MeshRenderer>().material.color = Color.black; // Change roomba to red to indicate broken state
-
-        // 2. Wait for the break period
-        yield return new WaitForSeconds(delay);
-
-        // 3. Exit the "broken" state and repair
-
-        // Play the vacuum on sound
-        PlaySound(vacuumOn);
-
-        GetComponentInChildren<MeshRenderer>().material.color = Color.green; // Change roomba to green to indicate repair
-
-        // Wait for the vacuum ON sound to finish
-        yield return new WaitForSeconds(0.5f);
-
-        // 4. Return to the normal game state
+        yield return new WaitForSeconds(0.5f); // Wait for half a second
 
         GetComponentInChildren<MeshRenderer>().material.color = Color.aquamarine; // Change roomba back to normal colour
-
-        isBroken = false; // Reset broken state
-
-        hits = 0; // Reset hits
-        GameManager.Instance.UpdateDamageBar(0); // Update damage bar in UI
-
-        // Restart the looping vacuum sound
-        if (audioSource != null && vacuumLoop != null) // Safety check
-        {
-            audioSource.clip = vacuumLoop;
-            audioSource.loop = true;
-            audioSource.Play();
-        }
     }
 
     // --- Bin Bag Disposal --- \\
@@ -404,7 +369,7 @@ public class Roomba_Player : MonoBehaviour
 
         GetComponentInChildren<MeshRenderer>().material.color = Color.yellow; // Change roomba to yellow to indicate emptying
 
-        // Camera Shake Effect here
+        StartCoroutine(ShakeRoomba());
 
         yield return new WaitForSeconds(5); // Simulate time taken to empty bag and audio to end
 
@@ -461,6 +426,22 @@ public class Roomba_Player : MonoBehaviour
         isDashing = false; // Reset dashing flag
         yield return new WaitForSeconds(dashCooldown); // Wait for cooldown
         canDash = true; // Re-enable dashing
+    }
+
+    IEnumerator ShakeRoomba()
+    {
+        Vector3 originalPosition = transform.position; // Store the original position
+
+        float elapsed = 0f; // Time elapsed
+        while (elapsed < shakeDuration)
+        {
+            float xOffset = Random.Range(-shakeMagnitude, shakeMagnitude);
+            float zOffset = Random.Range(-shakeMagnitude, shakeMagnitude);
+            transform.position = originalPosition + new Vector3(xOffset, 0, zOffset); // Apply shake offset
+            elapsed += Time.deltaTime; // Increment elapsed time
+            yield return null; // Wait for the next frame
+        }
+        transform.position = originalPosition; // Reset to original position
     }
 
     #endregion
