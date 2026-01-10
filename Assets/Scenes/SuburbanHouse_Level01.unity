@@ -11775,7 +11775,7 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 963194225}
   serializedVersion: 2
-  m_LocalRotation: {x: 0.2164396, y: 0, z: 0, w: 0.97629607}
+  m_LocalRotation: {x: 0.2164396, y: -0, z: -0, w: 0.97629607}
   m_LocalPosition: {x: 0, y: 5, z: -10}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
@@ -22051,8 +22051,15 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::CameraMovement
   targetToFollow: {fileID: 500659553}
+  actualCamera: {fileID: 963194228}
   rotationSpeed: 250
   followSpeed: 5
+  collisionLayers:
+    serializedVersion: 2
+    m_Bits: 64
+  collisionRadius: 0.2
+  minDistance: 1
+  camSmoothness: 10
 --- !u!1 &1679476854
 GameObject:
   m_ObjectHideFlags: 0
