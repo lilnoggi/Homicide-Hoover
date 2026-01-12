@@ -1,3 +1,4 @@
+using System.Collections;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -43,7 +44,7 @@ public class Roomba_Health : MonoBehaviour
         // Check for death
         if (currentHealth == 0)
         {
-            Die();
+            StartCoroutine(Die());
         }
     }
 
@@ -78,17 +79,13 @@ public class Roomba_Health : MonoBehaviour
         }
     }
 
-    void Die()
+    IEnumerator Die()
     {
         anim.SetBool("IsDead", true);
 
-        // Visual Explosion
-        if (explosionVFXPrefab != null)
-            Instantiate(explosionVFXPrefab, transform.position, Quaternion.identity);
+        yield return new WaitForSeconds(5f); // Wait for death animation
 
-        // Hide Roomba
-        GetComponentInChildren<MeshRenderer>().enabled = false;
-        smokeVFX.Stop();
+        // Explosion VFX here...
 
         // Tell GameManager to end game
         GameManager.Instance.TriggerGameOver();

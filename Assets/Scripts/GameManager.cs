@@ -194,8 +194,8 @@ public class GameManager : MonoBehaviour
         Debug.Log("Game Over!");
         if (gameOverPanel != null)
         {
-            //gameOverPanel.SetActive(true);
-            //TogglePause(true);
+            gameOverPanel.SetActive(true);
+            TogglePause(true);
         }
     }
 }
