@@ -195,7 +195,7 @@ public class GameManager : MonoBehaviour
         if (gameOverPanel != null)
         {
             //gameOverPanel.SetActive(true);
-            TogglePause(true);
+            //TogglePause(true);
         }
     }
 }
