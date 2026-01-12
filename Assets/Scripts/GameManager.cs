@@ -50,7 +50,7 @@ public class GameManager : MonoBehaviour
         if (roombaPlayer != null)
         {
             UpdateUI(roombaPlayer.currentCapacity, roombaPlayer.maxCapacity);
-            UpdateDamageBar(0);
+            UpdateDamageBar(10);
         }
         else
         {
