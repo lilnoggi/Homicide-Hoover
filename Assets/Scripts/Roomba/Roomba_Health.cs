@@ -16,8 +16,17 @@ public class Roomba_Health : MonoBehaviour
     public Image faceUI; // Drag the Face Image here
     public Sprite[] faceStates; // 0=Happy, 1=Hurt, 2=Critical
 
+    // References
+    private Animator anim;
+
+    private void Awake()
+    {
+        anim = GetComponent<Animator>();
+    }
+
     private void Start()
     {
+        anim.SetBool("IsDead", false);
         currentHealth = maxHealth;
         if (smokeVFX != null) smokeVFX.Stop();
         UpdateVisuals();
@@ -71,6 +80,8 @@ public class Roomba_Health : MonoBehaviour
 
     void Die()
     {
+        anim.SetBool("IsDead", true);
+
         // Visual Explosion
         if (explosionVFXPrefab != null)
             Instantiate(explosionVFXPrefab, transform.position, Quaternion.identity);
