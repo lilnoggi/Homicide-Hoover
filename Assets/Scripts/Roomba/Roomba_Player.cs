@@ -58,7 +58,6 @@ public class Roomba_Player : MonoBehaviour
     private Roomba_Health healthScript;
     private Rigidbody rb; // Reference to the Rigidbody component
     private AudioSource audioSource;
-    private Animator anim;
 
     [Header("Audio")]
     public AudioClip pickupSound;

@@ -10,7 +10,7 @@ public class Roomba_Health : MonoBehaviour
 
     [Header("Visual Damage")]
     public ParticleSystem smokeVFX;
-    public GameObject explosionVFXPrefab;
+    //public GameObject explosionVFXPrefab;
 
     [Header("UI References")]
     public Image healthBarFill; // Drag the Red Bar here
@@ -19,10 +19,15 @@ public class Roomba_Health : MonoBehaviour
 
     // References
     private Animator anim;
+    private Roomba_Player playerMovement;
+    private Rigidbody rb;
 
     private void Awake()
     {
         anim = GetComponent<Animator>();
+
+        playerMovement = GetComponent<Roomba_Player>();
+        rb = GetComponent<Rigidbody>();
     }
 
     private void Start()
@@ -81,11 +86,13 @@ public class Roomba_Health : MonoBehaviour
 
     IEnumerator Die()
     {
-        anim.SetBool("IsDead", true);
-
-        yield return new WaitForSeconds(5f); // Wait for death animation
+        playerMovement.enabled = false; // Disable movement
 
         // Explosion VFX here...
+
+        anim.SetBool("IsDead", true); // Trigger death animation
+
+        yield return new WaitForSeconds(5f); // Wait for death animation
 
         // Tell GameManager to end game
         GameManager.Instance.TriggerGameOver();

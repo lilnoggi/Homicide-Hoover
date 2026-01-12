@@ -27,7 +27,6 @@ public class GameManager : MonoBehaviour
 
     [Header("HUD References")]
     public Image capacityBarFill;
-    public Image damageBarFill;
 
     [Header("Script References")]
     private ButtonManager buttonManager;
@@ -50,7 +49,6 @@ public class GameManager : MonoBehaviour
         if (roombaPlayer != null)
         {
             UpdateUI(roombaPlayer.currentCapacity, roombaPlayer.maxCapacity);
-            UpdateDamageBar(10);
         }
         else
         {
@@ -65,7 +63,6 @@ public class GameManager : MonoBehaviour
         
         // Reset bars to empty/full as per design
         if (capacityBarFill != null) { capacityBarFill.fillAmount = 0; }
-        if (damageBarFill != null) { damageBarFill.fillAmount = 1; }
     }
 
     // === GAME LOGIC === \\
@@ -109,15 +106,6 @@ public class GameManager : MonoBehaviour
             // Convert to 0.0 - 1.0 percentage
             float fillAmount = (float)currentCapacity / maxCapacity;
             capacityBarFill.fillAmount = fillAmount;
-        }
-    }
-
-    public void UpdateDamageBar(int currentHits)
-    {
-        if (damageBarFill != null)
-        {
-            float maxHits = 3;
-            damageBarFill.fillAmount = (float)currentHits / maxHits;
         }
     }
 
